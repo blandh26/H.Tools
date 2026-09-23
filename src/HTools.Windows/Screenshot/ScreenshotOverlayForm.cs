@@ -1001,23 +1001,23 @@ public sealed class ScreenshotOverlayForm : Form
     {
         var panel = CreateBarPanel();
 
-        AddToolButton(panel, AnnotationTool.Rectangle, "▭", _texts.ToolRectangle);
-        AddToolButton(panel, AnnotationTool.RectangleFilled, "■", _texts.ToolRectangleFilled);
-        AddToolButton(panel, AnnotationTool.Ellipse, "◯", _texts.ToolEllipse);
-        AddToolButton(panel, AnnotationTool.EllipseFilled, "●", _texts.ToolEllipseFilled);
-        AddToolButton(panel, AnnotationTool.Line, "╱", _texts.ToolLine);
-        AddToolButton(panel, AnnotationTool.Arrow, "↗", _texts.ToolArrow);
-        AddToolButton(panel, AnnotationTool.Freehand, "✎", _texts.ToolFreehand);
-        AddToolButton(panel, AnnotationTool.Text, "T", _texts.ToolText);
-        AddToolButton(panel, AnnotationTool.Mosaic, "▦", _texts.ToolMosaic);
+        AddToolButton(panel, AnnotationTool.Rectangle, "rectangle", _texts.ToolRectangle);
+        AddToolButton(panel, AnnotationTool.RectangleFilled, "rectangle-filled", _texts.ToolRectangleFilled);
+        AddToolButton(panel, AnnotationTool.Ellipse, "ellipse", _texts.ToolEllipse);
+        AddToolButton(panel, AnnotationTool.EllipseFilled, "ellipse-filled", _texts.ToolEllipseFilled);
+        AddToolButton(panel, AnnotationTool.Line, "line", _texts.ToolLine);
+        AddToolButton(panel, AnnotationTool.Arrow, "arrow", _texts.ToolArrow);
+        AddToolButton(panel, AnnotationTool.Freehand, "freehand", _texts.ToolFreehand);
+        AddToolButton(panel, AnnotationTool.Text, "text", _texts.ToolText);
+        AddToolButton(panel, AnnotationTool.Mosaic, "mosaic", _texts.ToolMosaic);
 
         AddSeparator(panel);
 
-        AddActionButton(panel, "↺", _texts.ActionUndo, (_, _) => Undo());
-        AddActionButton(panel, "📌", _texts.ActionPin, (_, _) => PinToScreenAndFinish());
-        AddActionButton(panel, "📋", _texts.ActionCopy, (_, _) => CopyToClipboardAndFinish());
-        AddActionButton(panel, "💾", _texts.ActionSave, (_, _) => SaveToFileAndFinish());
-        AddActionButton(panel, "✕", _texts.ActionCancel, (_, _) => Finish(new ScreenshotResult(ScreenshotOutcome.Cancelled)));
+        AddActionButton(panel, "undo", _texts.ActionUndo, (_, _) => Undo());
+        AddActionButton(panel, "pin", _texts.ActionPin, (_, _) => PinToScreenAndFinish());
+        AddActionButton(panel, "copy", _texts.ActionCopy, (_, _) => CopyToClipboardAndFinish());
+        AddActionButton(panel, "save", _texts.ActionSave, (_, _) => SaveToFileAndFinish());
+        AddActionButton(panel, "cancel", _texts.ActionCancel, (_, _) => Finish(new ScreenshotResult(ScreenshotOutcome.Cancelled)));
 
         _toolbar = panel;
         Controls.Add(panel);
@@ -1068,9 +1068,9 @@ public sealed class ScreenshotOverlayForm : Form
         return panel;
     }
 
-    private void AddToolButton(FlowLayoutPanel panel, AnnotationTool tool, string glyph, string tooltip)
+    private void AddToolButton(FlowLayoutPanel panel, AnnotationTool tool, string iconName, string tooltip)
     {
-        var button = MakeGlyphButton(glyph);
+        var button = MakeIconButton(iconName);
         _toolTip.SetToolTip(button, tooltip);
         button.Click += (_, _) =>
         {
@@ -1157,7 +1157,7 @@ public sealed class ScreenshotOverlayForm : Form
 
     private void AddCustomColorButton(FlowLayoutPanel panel)
     {
-        var button = MakeGlyphButton("🎨");
+        var button = MakeIconButton("palette");
         _toolTip.SetToolTip(button, _texts.CustomColor);
         button.Click += (_, _) =>
         {
@@ -1171,9 +1171,9 @@ public sealed class ScreenshotOverlayForm : Form
         panel.Controls.Add(button);
     }
 
-    private void AddActionButton(FlowLayoutPanel panel, string glyph, string tooltip, EventHandler onClick)
+    private void AddActionButton(FlowLayoutPanel panel, string iconName, string tooltip, EventHandler onClick)
     {
-        var button = MakeGlyphButton(glyph);
+        var button = MakeIconButton(iconName);
         _toolTip.SetToolTip(button, tooltip);
         button.Click += onClick;
         panel.Controls.Add(button);
@@ -1194,29 +1194,33 @@ public sealed class ScreenshotOverlayForm : Form
         });
     }
 
+    /// <summary>Icon pixel size drawn inside each <see cref="ButtonSize"/> button — leaves a few
+    /// pixels of margin around the icon so the rounded corners and hover highlight remain visible.</summary>
+    private const int IconSize = 18;
+
     /// <summary>A uniform-size, rounded-corner slot with no icon of its own — used for the size and
     /// color swatches, which each own-draw their content in <see cref="Control.Paint"/> instead.</summary>
-    private static Button MakeSlotButton() => MakeButtonCore(text: string.Empty, fontSize: 0f);
+    private static Button MakeSlotButton() => MakeButtonCore(icon: null);
 
-    private static Button MakeGlyphButton(string glyph) => MakeButtonCore(glyph, fontSize: 13f);
+    /// <summary>A button showing one of <see cref="ScreenshotIcons"/>'s colorful SVG-rendered icons,
+    /// used for every tool/action button on the toolbar.</summary>
+    private static Button MakeIconButton(string iconName) => MakeButtonCore(ScreenshotIcons.Get(iconName, IconSize));
 
-    private static Button MakeButtonCore(string text, float fontSize)
+    private static Button MakeButtonCore(Bitmap? icon)
     {
         var button = new Button
         {
-            Text = text,
             Size = new Size(ButtonSize, ButtonSize),
             FlatStyle = FlatStyle.Flat,
             BackColor = ButtonIdleColor,
-            ForeColor = Color.White,
             Margin = new Padding(3),
-            TextAlign = ContentAlignment.MiddleCenter,
             FlatAppearance = { BorderSize = 0 },
         };
 
-        if (fontSize > 0f)
+        if (icon is not null)
         {
-            button.Font = new Font("Segoe UI Symbol", fontSize);
+            button.Image = icon;
+            button.ImageAlign = ContentAlignment.MiddleCenter;
         }
 
         ApplyRoundedRegion(button, ButtonSize, ButtonSize, CornerRadius);

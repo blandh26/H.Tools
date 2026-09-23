@@ -12,4 +12,8 @@
     <ProjectReference Include="..\HTools.Core\HTools.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Svg" Version="3.4.8" />
+  </ItemGroup>
+
 </Project>
