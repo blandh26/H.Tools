@@ -15,4 +15,23 @@
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
     </application>
   </compatibility>
+
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <!--
+        Without this, the process defaults to DPI-unaware, which makes Windows lie to every DPI/screen
+        API: GetSystemMetrics(SM_C*VIRTUALSCREEN) and Graphics.CopyFromScreen report bitmap-stretched,
+        primary-monitor-scaled coordinates instead of real pixels. That's what the screenshot overlay
+        (HTools.Windows.Screenshot) relies on to size itself to the virtual desktop and crop the right
+        pixels, so on any monitor running above 100% scaling — the common case, not an edge case — an
+        unaware process would capture blurry/misaligned regions, and on a multi-monitor setup with
+        different per-monitor scale factors it would misplace the overlay/selection relative to where
+        each monitor actually is. Per-Monitor-V2 is what actually reports true per-monitor pixel
+        coordinates; PM/true are the older Per-Monitor / System-aware fallbacks for OS versions that
+        predate V2 support.
+      -->
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
+    </windowsSettings>
+  </application>
 </assembly>
