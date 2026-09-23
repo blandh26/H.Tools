@@ -15,7 +15,7 @@ public sealed partial class HomeViewModel : LocalizedViewModelBase
     private readonly Func<ToolDescriptor, object> _pageFactory;
 
     [ObservableProperty]
-    private string _groupKey = NavGroupKeys.Favorites;
+    private string _groupKey = NavGroupKeys.Home;
 
     public HomeViewModel(ILocalizationService loc, Action<ToolDescriptor> openTool, Func<ToolDescriptor, object> pageFactory)
         : base(loc)

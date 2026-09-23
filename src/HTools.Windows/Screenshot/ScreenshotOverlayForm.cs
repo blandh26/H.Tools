@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using HTools.Windows.Interop;
 
@@ -8,17 +9,41 @@ namespace HTools.Windows.Screenshot;
 
 /// <summary>
 /// A borderless, topmost window sized to the whole virtual desktop (so selection can cross monitor
-/// boundaries), showing a frozen screenshot as its background. Drag out a region, optionally resize it
-/// via the corner/edge handles, then annotate (rectangle/ellipse/arrow/freehand/text/mosaic) before
-/// copying or saving. Annotations are "burned in" to a working bitmap on each commit, with a plain
-/// undo stack of bitmap snapshots — simpler than tracking a vector object model and works uniformly
-/// for pixel-level tools like mosaic.
+/// boundaries), showing a frozen screenshot as its background. The interaction model is rebuilt to
+/// match the "core experience" of the H_Assistant reference project's screenshot tool:
+///   - before a region is picked, hovering highlights the window under the cursor (click it to select
+///     it outright) and a pixel-level magnifier follows the cursor;
+///   - once a region is picked, 8 resize handles let it be adjusted before committing to annotation;
+///   - annotations (rectangle/ellipse — hollow or filled, line, arrow, freehand, text, mosaic) are
+///     "burned in" to a working bitmap on each commit, with undo via a plain stack of full-bitmap
+///     snapshots — simpler than a vector object model and works uniformly for pixel-level tools like
+///     mosaic (this part matches the reference project's own approach, not just a coincidence);
+///   - a secondary options row (16 preset colors + a custom-color picker, 5 pen sizes) appears under
+///     the toolbar whenever a drawing tool is active;
+///   - finishing actions are undo / pin-to-screen (floating always-on-top copy) / copy-to-clipboard /
+///     save-to-file / cancel.
+/// Deliberately NOT reproduced from the reference project (by explicit scope decision, not oversight):
+/// its "repeat last region" auto-capture mode, its "contrast/diff" floating compare window, the V/T
+/// visible-window-only toggle hotkeys, the WASD cursor-nudge keys, and its known bugs (e.g. a virtual-
+/// screen Y-origin calculation that silently no-ops).
 /// </summary>
 public sealed class ScreenshotOverlayForm : Form
 {
     private const int HandleSize = 8;
-    private const int ToolbarHeight = 40;
+    private const int ToolbarGap = 8;
+    private const int OptionsGap = 4;
     private const int MinSelectionSize = 4;
+
+    /// <summary>Pen widths offered by the size picker — mirrors the reference project's five fixed
+    /// brush sizes (its size picker doubles as the text tool's font-size increment, see <see cref="BeginTextEntry"/>).</summary>
+    private static readonly int[] PenSizes = [1, 3, 5, 8, 12];
+
+    /// <summary>The 16-swatch preset palette, in the same order as the reference project's color box.</summary>
+    private static readonly Color[] PresetColors =
+    [
+        Color.Black, Color.DimGray, Color.DarkRed, Color.DarkGoldenrod, Color.DarkGreen, Color.DarkBlue, Color.DarkViolet, Color.DarkCyan,
+        Color.White, Color.DarkGray, Color.Red, Color.Yellow, Color.LightGreen, Color.Blue, Color.Fuchsia, Color.Cyan,
+    ];
 
     private enum State
     {
@@ -52,17 +77,27 @@ public sealed class ScreenshotOverlayForm : Form
     private ResizeHandle _activeHandle = ResizeHandle.None;
     private Rectangle _handleStartSelection;
 
+    // Window-hover auto-detection state, live only while State.Idle (see UpdateHoverWindow). Retained
+    // through a click (not re-queried during the drag itself) so a plain click — mouse-up at the same
+    // spot as mouse-down — can snap-select whatever window was under the cursor at that moment.
+    private Rectangle? _hoverBounds;
+    private string _hoverTitle = string.Empty;
+    private Point _lastCursorPosition;
+
     private AnnotationTool _currentTool = AnnotationTool.None;
-    private Color _annotationColor = Color.FromArgb(255, 235, 64, 52);
+    private Color _annotationColor = Color.Red;
+    private int _annotationSize = 5;
     private bool _isAnnotating;
     private Point _annotationStart;
     private Point _annotationCurrent;
     private readonly List<Point> _freehandPoints = [];
 
     private FlowLayoutPanel? _toolbar;
+    private FlowLayoutPanel? _optionsPanel;
     private TextBox? _textEditor;
     private readonly Dictionary<AnnotationTool, Button> _toolButtons = new();
-    private readonly Dictionary<Color, Button> _colorButtons = new();
+    private readonly List<(Color Color, Button Button)> _colorButtons = [];
+    private readonly List<(int Size, Button Button)> _sizeButtons = [];
     private readonly ToolTip _toolTip = new();
     private readonly ScreenshotOverlayTexts _texts;
 
@@ -86,6 +121,7 @@ public sealed class ScreenshotOverlayForm : Form
         BackColor = Color.Black;
 
         BuildToolbar();
+        BuildOptionsPanel();
     }
 
     public event EventHandler<ScreenshotResult>? Completed;
@@ -135,8 +171,21 @@ public sealed class ScreenshotOverlayForm : Form
         switch (_state)
         {
             case State.Idle:
-                DrawDim(g, Rectangle.Empty);
-                DrawHint(g);
+                if (_hoverBounds is { } hover)
+                {
+                    // Un-dim the hovered window's rect (reusing DrawDim's "punch a hole" behavior) and
+                    // outline+label it, so it reads as "click here to select this window".
+                    DrawDim(g, hover);
+                    DrawHoverBorder(g, hover);
+                    DrawHoverLabel(g, hover, _hoverTitle);
+                }
+                else
+                {
+                    DrawDim(g, Rectangle.Empty);
+                    DrawHint(g);
+                }
+
+                DrawMagnifier(g, _lastCursorPosition);
                 break;
             case State.Dragging:
                 var live = NormalizedRect(_dragStart, _dragCurrent);
@@ -177,6 +226,35 @@ public sealed class ScreenshotOverlayForm : Form
     {
         using var pen = new Pen(Color.FromArgb(255, 40, 160, 255), 1.5f);
         g.DrawRectangle(pen, rect);
+    }
+
+    private static void DrawHoverBorder(Graphics g, Rectangle rect)
+    {
+        using var pen = new Pen(Color.FromArgb(255, 0, 220, 220), 2f);
+        g.DrawRectangle(pen, rect);
+    }
+
+    private static void DrawHoverLabel(Graphics g, Rectangle rect, string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return;
+        }
+
+        using var font = new Font("Microsoft YaHei UI", 9.5f);
+        var size = g.MeasureString(title, font, 400);
+        var labelWidth = Math.Min(size.Width + 8, 400);
+        var labelY = rect.Top - size.Height - 6;
+        if (labelY < 0)
+        {
+            labelY = rect.Top + 4;
+        }
+
+        var backRect = new RectangleF(rect.Left, labelY, labelWidth, size.Height + 2);
+        using var backBrush = new SolidBrush(Color.FromArgb(200, 20, 20, 20));
+        g.FillRectangle(backBrush, backRect);
+        using var textBrush = new SolidBrush(Color.White);
+        g.DrawString(title, font, textBrush, new RectangleF(backRect.X + 4, backRect.Y + 1, labelWidth - 8, size.Height));
     }
 
     private void DrawHint(Graphics g)
@@ -246,6 +324,93 @@ public sealed class ScreenshotOverlayForm : Form
         }
     }
 
+    /// <summary>
+    /// Pixel-level color-picker magnifier, shown only before a selection is made (State.Idle). Samples
+    /// a small 15x15 block of the frozen screenshot centered on the cursor, upscales it 7x with
+    /// nearest-neighbor (so individual source pixels stay crisp blocks rather than blurring), and draws
+    /// a crosshair plus an RGB/hex readout for the exact pixel under the cursor — mirrors the reference
+    /// project's magnifier, which exists to let the user aim precisely (and eyeball colors) before
+    /// committing to a drag.
+    /// </summary>
+    private void DrawMagnifier(Graphics g, Point cursor)
+    {
+        const int sampleRadius = 7;
+        const int sampleSize = (sampleRadius * 2) + 1;
+        const int zoom = 7;
+
+        var sampleRect = new Rectangle(cursor.X - sampleRadius, cursor.Y - sampleRadius, sampleSize, sampleSize);
+        var clamped = Rectangle.Intersect(sampleRect, new Rectangle(Point.Empty, _screenshot.Size));
+        if (clamped.Width <= 0 || clamped.Height <= 0)
+        {
+            return;
+        }
+
+        using var sample = _screenshot.Clone(clamped, _screenshot.PixelFormat);
+        var magnifiedSize = new Size(sampleSize * zoom, sampleSize * zoom);
+        var panelWidth = magnifiedSize.Width + 2;
+        var panelHeight = magnifiedSize.Height + 2 + 22;
+
+        // Offset the panel from the cursor, but flip to the opposite side whenever it would run off
+        // the edge of the (possibly multi-monitor-spanning) virtual desktop.
+        var panelX = cursor.X + 20;
+        var panelY = cursor.Y + 20;
+        if (panelX + panelWidth > Width)
+        {
+            panelX = cursor.X - 20 - panelWidth;
+        }
+
+        if (panelY + panelHeight > Height)
+        {
+            panelY = cursor.Y - 20 - panelHeight;
+        }
+
+        panelX = Math.Max(0, panelX);
+        panelY = Math.Max(0, panelY);
+
+        using (var backBrush = new SolidBrush(Color.FromArgb(200, 20, 20, 20)))
+        {
+            g.FillRectangle(backBrush, panelX, panelY, panelWidth, panelHeight);
+        }
+
+        var imageRect = new Rectangle(panelX + 1, panelY + 1, magnifiedSize.Width, magnifiedSize.Height);
+        var previousInterpolation = g.InterpolationMode;
+        var previousPixelOffset = g.PixelOffsetMode;
+        g.InterpolationMode = InterpolationMode.NearestNeighbor;
+        g.PixelOffsetMode = PixelOffsetMode.Half;
+        g.DrawImage(sample, imageRect);
+        g.InterpolationMode = previousInterpolation;
+        g.PixelOffsetMode = previousPixelOffset;
+
+        using (var borderPen = new Pen(Color.White, 1f))
+        {
+            g.DrawRectangle(borderPen, imageRect);
+        }
+
+        var centerX = imageRect.X + (imageRect.Width / 2);
+        var centerY = imageRect.Y + (imageRect.Height / 2);
+        using (var crossPen = new Pen(Color.FromArgb(125, 0, 255, 255), 1f))
+        {
+            g.DrawLine(crossPen, imageRect.Left, centerY, imageRect.Right, centerY);
+            g.DrawLine(crossPen, centerX, imageRect.Top, centerX, imageRect.Bottom);
+        }
+
+        var pixelX = Math.Clamp(cursor.X, 0, _screenshot.Width - 1);
+        var pixelY = Math.Clamp(cursor.Y, 0, _screenshot.Height - 1);
+        var pixelColor = _screenshot.GetPixel(pixelX, pixelY);
+        using (var swatchBrush = new SolidBrush(pixelColor))
+        using (var swatchPen = new Pen(Color.Cyan, 1f))
+        {
+            var swatchRect = new Rectangle(imageRect.Right - 12, imageRect.Bottom - 12, 10, 10);
+            g.FillRectangle(swatchBrush, swatchRect);
+            g.DrawRectangle(swatchPen, swatchRect);
+        }
+
+        var readout = $"{pixelColor.R},{pixelColor.G},{pixelColor.B}  #{pixelColor.R:X2}{pixelColor.G:X2}{pixelColor.B:X2}";
+        using var font = new Font("Consolas", 9.5f);
+        using var textBrush = new SolidBrush(Color.White);
+        g.DrawString(readout, font, textBrush, panelX + 4, imageRect.Bottom + 4);
+    }
+
     private void DrawLivePreview(Graphics g)
     {
         if (!_isAnnotating)
@@ -253,14 +418,24 @@ public sealed class ScreenshotOverlayForm : Form
             return;
         }
 
-        using var pen = new Pen(_annotationColor, 3f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        using var pen = new Pen(_annotationColor, _annotationSize) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        using var brush = new SolidBrush(_annotationColor);
         switch (_currentTool)
         {
             case AnnotationTool.Rectangle:
                 g.DrawRectangle(pen, NormalizedRect(_annotationStart, _annotationCurrent));
                 break;
+            case AnnotationTool.RectangleFilled:
+                g.FillRectangle(brush, NormalizedRect(_annotationStart, _annotationCurrent));
+                break;
             case AnnotationTool.Ellipse:
                 g.DrawEllipse(pen, NormalizedRect(_annotationStart, _annotationCurrent));
+                break;
+            case AnnotationTool.EllipseFilled:
+                g.FillEllipse(brush, NormalizedRect(_annotationStart, _annotationCurrent));
+                break;
+            case AnnotationTool.Line:
+                g.DrawLine(pen, _annotationStart, _annotationCurrent);
                 break;
             case AnnotationTool.Arrow:
                 DrawArrow(g, pen, _annotationStart, _annotationCurrent);
@@ -273,6 +448,9 @@ public sealed class ScreenshotOverlayForm : Form
 
                 break;
             case AnnotationTool.Mosaic:
+                // The mosaic itself is only computed on commit (see ApplyMosaic) — while dragging we
+                // just show a dashed outline of the area that will be pixelated, same as the reference
+                // project (its mosaic texture is precomputed once per commit too, not live per-frame).
                 using (var dashPen = new Pen(Color.White, 1f) { DashStyle = DashStyle.Dash })
                 {
                     g.DrawRectangle(dashPen, NormalizedRect(_annotationStart, _annotationCurrent));
@@ -291,11 +469,11 @@ public sealed class ScreenshotOverlayForm : Form
         const double headLength = 18;
 
         var p1 = new PointF(
-            (float)(end.X - headLength * Math.Cos(angle - headAngle)),
-            (float)(end.Y - headLength * Math.Sin(angle - headAngle)));
+            (float)(end.X - (headLength * Math.Cos(angle - headAngle))),
+            (float)(end.Y - (headLength * Math.Sin(angle - headAngle))));
         var p2 = new PointF(
-            (float)(end.X - headLength * Math.Cos(angle + headAngle)),
-            (float)(end.Y - headLength * Math.Sin(angle + headAngle)));
+            (float)(end.X - (headLength * Math.Cos(angle + headAngle))),
+            (float)(end.Y - (headLength * Math.Sin(angle + headAngle))));
 
         using var headBrush = new SolidBrush(pen.Color);
         g.FillPolygon(headBrush, [new PointF(end.X, end.Y), p1, p2]);
@@ -351,6 +529,15 @@ public sealed class ScreenshotOverlayForm : Form
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
+        _lastCursorPosition = e.Location;
+
+        if (_state == State.Idle)
+        {
+            // No drag/selection in progress yet: keep the hover-window highlight and magnifier live.
+            UpdateHoverWindow(e.Location);
+            Invalidate();
+            return;
+        }
 
         if (_state == State.Dragging)
         {
@@ -391,6 +578,30 @@ public sealed class ScreenshotOverlayForm : Form
         }
     }
 
+    /// <summary>Queries <see cref="WindowHoverDetector"/> for the window under the cursor and converts
+    /// its screen-coordinate bounds into this form's local (virtual-desktop-relative) coordinate space
+    /// — the same space every other rectangle field on this form (selection, drag points, etc.) lives in.</summary>
+    private void UpdateHoverWindow(Point clientLocation)
+    {
+        var screenPoint = new Point(clientLocation.X + _virtualBounds.X, clientLocation.Y + _virtualBounds.Y);
+        var found = WindowHoverDetector.FindWindowAt(screenPoint, Handle);
+        if (found is { } match)
+        {
+            var local = new Rectangle(
+                match.Bounds.X - _virtualBounds.X,
+                match.Bounds.Y - _virtualBounds.Y,
+                match.Bounds.Width,
+                match.Bounds.Height);
+            _hoverBounds = Rectangle.Intersect(local, ClientRectangle);
+            _hoverTitle = match.Title;
+        }
+        else
+        {
+            _hoverBounds = null;
+            _hoverTitle = string.Empty;
+        }
+    }
+
     protected override void OnMouseUp(MouseEventArgs e)
     {
         base.OnMouseUp(e);
@@ -404,6 +615,17 @@ public sealed class ScreenshotOverlayForm : Form
             var rect = NormalizedRect(_dragStart, _dragCurrent);
             if (rect.Width < MinSelectionSize || rect.Height < MinSelectionSize)
             {
+                if (_hoverBounds is { } hoverAtClick)
+                {
+                    // A plain click (no meaningful drag) on a window we were highlighting snap-selects
+                    // that window's whole bounds, instead of forcing the user to trace its outline.
+                    _selection = Rectangle.Intersect(hoverAtClick, ClientRectangle);
+                    _state = State.Selected;
+                    ShowToolbar();
+                    Invalidate();
+                    return;
+                }
+
                 _state = State.Idle;
                 Invalidate();
                 return;
@@ -512,15 +734,25 @@ public sealed class ScreenshotOverlayForm : Form
         PushUndoSnapshot();
         using var g = Graphics.FromImage(_workingBitmap);
         g.SmoothingMode = SmoothingMode.AntiAlias;
-        using var pen = new Pen(_annotationColor, 3f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        using var pen = new Pen(_annotationColor, _annotationSize) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        using var brush = new SolidBrush(_annotationColor);
 
         switch (_currentTool)
         {
             case AnnotationTool.Rectangle:
                 g.DrawRectangle(pen, NormalizedRect(_annotationStart, _annotationCurrent));
                 break;
+            case AnnotationTool.RectangleFilled:
+                g.FillRectangle(brush, NormalizedRect(_annotationStart, _annotationCurrent));
+                break;
             case AnnotationTool.Ellipse:
                 g.DrawEllipse(pen, NormalizedRect(_annotationStart, _annotationCurrent));
+                break;
+            case AnnotationTool.EllipseFilled:
+                g.FillEllipse(brush, NormalizedRect(_annotationStart, _annotationCurrent));
+                break;
+            case AnnotationTool.Line:
+                g.DrawLine(pen, _annotationStart, _annotationCurrent);
                 break;
             case AnnotationTool.Arrow:
                 DrawArrow(g, pen, _annotationStart, _annotationCurrent);
@@ -541,6 +773,15 @@ public sealed class ScreenshotOverlayForm : Form
         Invalidate();
     }
 
+    /// <summary>
+    /// Block-average pixelation: for every 10x10 block within the dragged area, every pixel in that
+    /// block is replaced with the block's average color — the same algorithm (and 10px block size) as
+    /// the reference project's ImageHelper.Mosaic. It operates on raw BGRA bytes via LockBits rather
+    /// than per-pixel GetPixel/SetPixel calls, which would be far too slow for anything but a tiny area.
+    /// Unlike the reference implementation (which precomputes a mosaic of the *entire* captured region
+    /// once and reveals slices of it via a texture brush), this recomputes just the dragged area
+    /// directly — same visual result for what's actually revealed, without the whole-image precompute.
+    /// </summary>
     private void ApplyMosaic(Rectangle area)
     {
         area = Rectangle.Intersect(area, new Rectangle(Point.Empty, _workingBitmap.Size));
@@ -549,33 +790,79 @@ public sealed class ScreenshotOverlayForm : Form
             return;
         }
 
-        const int blockSize = 14;
-        var smallWidth = Math.Max(1, area.Width / blockSize);
-        var smallHeight = Math.Max(1, area.Height / blockSize);
-
-        using var region = _workingBitmap.Clone(area, _workingBitmap.PixelFormat);
-        using var small = new Bitmap(smallWidth, smallHeight);
-        using (var smallGraphics = Graphics.FromImage(small))
+        const int blockSize = 10;
+        using var region = _workingBitmap.Clone(area, PixelFormat.Format32bppArgb);
+        var data = region.LockBits(new Rectangle(Point.Empty, region.Size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        try
         {
-            smallGraphics.InterpolationMode = InterpolationMode.Bilinear;
-            smallGraphics.DrawImage(region, new Rectangle(0, 0, smallWidth, smallHeight));
+            var stride = data.Stride;
+            var bytes = new byte[stride * region.Height];
+            Marshal.Copy(data.Scan0, bytes, 0, bytes.Length);
+
+            for (var blockY = 0; blockY < region.Height; blockY += blockSize)
+            {
+                var blockHeight = Math.Min(blockSize, region.Height - blockY);
+                for (var blockX = 0; blockX < region.Width; blockX += blockSize)
+                {
+                    var blockWidth = Math.Min(blockSize, region.Width - blockX);
+                    long sumB = 0, sumG = 0, sumR = 0;
+                    var pixelCount = blockWidth * blockHeight;
+
+                    // First pass: sum every channel across the block.
+                    for (var y = 0; y < blockHeight; y++)
+                    {
+                        var rowStart = ((blockY + y) * stride) + (blockX * 4);
+                        for (var x = 0; x < blockWidth; x++)
+                        {
+                            var i = rowStart + (x * 4);
+                            sumB += bytes[i];
+                            sumG += bytes[i + 1];
+                            sumR += bytes[i + 2];
+                        }
+                    }
+
+                    var avgB = (byte)(sumB / pixelCount);
+                    var avgG = (byte)(sumG / pixelCount);
+                    var avgR = (byte)(sumR / pixelCount);
+
+                    // Second pass: write the block average back to every pixel in the block. Alpha is
+                    // left untouched — the crop is always fully opaque, so it doesn't matter here.
+                    for (var y = 0; y < blockHeight; y++)
+                    {
+                        var rowStart = ((blockY + y) * stride) + (blockX * 4);
+                        for (var x = 0; x < blockWidth; x++)
+                        {
+                            var i = rowStart + (x * 4);
+                            bytes[i] = avgB;
+                            bytes[i + 1] = avgG;
+                            bytes[i + 2] = avgR;
+                        }
+                    }
+                }
+            }
+
+            Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
+        }
+        finally
+        {
+            region.UnlockBits(data);
         }
 
         using var g = Graphics.FromImage(_workingBitmap);
-        g.InterpolationMode = InterpolationMode.NearestNeighbor;
-        g.PixelOffsetMode = PixelOffsetMode.Half;
-        g.DrawImage(small, area);
+        g.DrawImage(region, area.Location);
     }
 
     private void BeginTextEntry(Point location)
     {
         _textEditor?.Dispose();
 
+        // Font size mirrors the reference project's formula (base 14pt + the selected pen-size number)
+        // so the same size picker doubles as a font-size control for the text tool.
         var editor = new TextBox
         {
             Location = location,
             MinimumSize = new Size(120, 24),
-            Font = new Font("Microsoft YaHei UI", 12f),
+            Font = new Font("Microsoft YaHei UI", 14f + _annotationSize),
             ForeColor = _annotationColor,
             BackColor = Color.White,
             BorderStyle = BorderStyle.FixedSingle,
@@ -613,6 +900,7 @@ public sealed class ScreenshotOverlayForm : Form
         }
 
         var text = editor.Text;
+        var font = editor.Font;
         var location = editor.Location;
         Controls.Remove(editor);
         editor.Dispose();
@@ -622,7 +910,6 @@ public sealed class ScreenshotOverlayForm : Form
             PushUndoSnapshot();
             using var g = Graphics.FromImage(_workingBitmap);
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-            using var font = new Font("Microsoft YaHei UI", 14f, FontStyle.Bold);
             using var brush = new SolidBrush(_annotationColor);
             g.DrawString(text, font, brush, location);
         }
@@ -708,7 +995,10 @@ public sealed class ScreenshotOverlayForm : Form
         };
 
         AddToolButton(panel, AnnotationTool.Rectangle, "▭", _texts.ToolRectangle);
+        AddToolButton(panel, AnnotationTool.RectangleFilled, "■", _texts.ToolRectangleFilled);
         AddToolButton(panel, AnnotationTool.Ellipse, "◯", _texts.ToolEllipse);
+        AddToolButton(panel, AnnotationTool.EllipseFilled, "●", _texts.ToolEllipseFilled);
+        AddToolButton(panel, AnnotationTool.Line, "╱", _texts.ToolLine);
         AddToolButton(panel, AnnotationTool.Arrow, "↗", _texts.ToolArrow);
         AddToolButton(panel, AnnotationTool.Freehand, "✎", _texts.ToolFreehand);
         AddToolButton(panel, AnnotationTool.Text, "T", _texts.ToolText);
@@ -716,19 +1006,47 @@ public sealed class ScreenshotOverlayForm : Form
 
         AddSeparator(panel);
 
-        foreach (var color in new[] { Color.FromArgb(255, 235, 64, 52), Color.FromArgb(255, 250, 173, 20), Color.FromArgb(255, 82, 196, 26), Color.FromArgb(255, 24, 144, 255), Color.Black })
-        {
-            AddColorButton(panel, color);
-        }
-
-        AddSeparator(panel);
-
         AddActionButton(panel, "↺", _texts.ActionUndo, (_, _) => Undo());
+        AddActionButton(panel, "📌", _texts.ActionPin, (_, _) => PinToScreenAndFinish());
         AddActionButton(panel, "📋", _texts.ActionCopy, (_, _) => CopyToClipboardAndFinish());
         AddActionButton(panel, "💾", _texts.ActionSave, (_, _) => SaveToFileAndFinish());
         AddActionButton(panel, "✕", _texts.ActionCancel, (_, _) => Finish(new ScreenshotResult(ScreenshotOutcome.Cancelled)));
 
         _toolbar = panel;
+        Controls.Add(panel);
+    }
+
+    /// <summary>The secondary row of pen-size and color swatches, shown under the main toolbar only
+    /// while a drawing tool is active (toggled in <see cref="AddToolButton"/>) — matches the reference
+    /// project's "panel1", which likewise only appears once an annotation tool is selected.</summary>
+    private void BuildOptionsPanel()
+    {
+        var panel = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            BackColor = Color.FromArgb(240, 32, 32, 32),
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(4),
+            Visible = false,
+        };
+
+        foreach (var size in PenSizes)
+        {
+            AddSizeButton(panel, size);
+        }
+
+        AddSeparator(panel);
+
+        foreach (var color in PresetColors)
+        {
+            AddColorButton(panel, color);
+        }
+
+        AddSeparator(panel);
+        AddCustomColorButton(panel);
+
+        _optionsPanel = panel;
         Controls.Add(panel);
     }
 
@@ -740,8 +1058,44 @@ public sealed class ScreenshotOverlayForm : Form
         {
             _currentTool = _currentTool == tool ? AnnotationTool.None : tool;
             UpdateToolButtonHighlight();
+            if (_optionsPanel is not null)
+            {
+                _optionsPanel.Visible = _currentTool != AnnotationTool.None;
+                PositionToolbar();
+            }
         };
         _toolButtons[tool] = button;
+        panel.Controls.Add(button);
+    }
+
+    private void AddSizeButton(FlowLayoutPanel panel, int size)
+    {
+        var button = new Button
+        {
+            Size = new Size(28, 32),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = Color.FromArgb(240, 32, 32, 32),
+            Margin = new Padding(2),
+            FlatAppearance = { BorderSize = 0 },
+        };
+
+        // Owner-drawn: a plain filled circle whose diameter scales with the pen size it represents,
+        // so the button itself previews the stroke weight instead of needing a numeric label.
+        button.Paint += (_, e) =>
+        {
+            var diameter = Math.Clamp(size, 2, 20);
+            var rect = new Rectangle((button.Width - diameter) / 2, (button.Height - diameter) / 2, diameter, diameter);
+            using var brush = new SolidBrush(Color.White);
+            e.Graphics.FillEllipse(brush, rect);
+        };
+
+        _toolTip.SetToolTip(button, $"{size}px");
+        button.Click += (_, _) =>
+        {
+            _annotationSize = size;
+            UpdateToolButtonHighlight();
+        };
+        _sizeButtons.Add((size, button));
         panel.Controls.Add(button);
     }
 
@@ -761,7 +1115,33 @@ public sealed class ScreenshotOverlayForm : Form
             _annotationColor = color;
             UpdateToolButtonHighlight();
         };
-        _colorButtons[color] = button;
+        _colorButtons.Add((color, button));
+        panel.Controls.Add(button);
+    }
+
+    private void AddCustomColorButton(FlowLayoutPanel panel)
+    {
+        var button = new Button
+        {
+            Size = new Size(28, 32),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = Color.FromArgb(240, 32, 32, 32),
+            ForeColor = Color.White,
+            Text = "🎨",
+            Font = new Font("Segoe UI Symbol", 11f),
+            Margin = new Padding(2),
+            FlatAppearance = { BorderSize = 0 },
+        };
+        _toolTip.SetToolTip(button, _texts.CustomColor);
+        button.Click += (_, _) =>
+        {
+            using var dialog = new ColorDialog { Color = _annotationColor, FullOpen = true };
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                _annotationColor = dialog.Color;
+                UpdateToolButtonHighlight();
+            }
+        };
         panel.Controls.Add(button);
     }
 
@@ -800,10 +1180,18 @@ public sealed class ScreenshotOverlayForm : Form
             button.BackColor = tool == _currentTool ? Color.FromArgb(255, 24, 144, 255) : Color.FromArgb(240, 32, 32, 32);
         }
 
+        // Color.== compares more than just the ARGB value (it also compares the "known color" name
+        // flags), so two colors that look identical can compare unequal — ToArgb() sidesteps that trap.
         foreach (var (color, button) in _colorButtons)
         {
-            button.FlatAppearance.BorderColor = color == _annotationColor ? Color.FromArgb(255, 24, 144, 255) : Color.White;
-            button.FlatAppearance.BorderSize = color == _annotationColor ? 2 : 1;
+            var selected = color.ToArgb() == _annotationColor.ToArgb();
+            button.FlatAppearance.BorderColor = selected ? Color.FromArgb(255, 24, 144, 255) : Color.White;
+            button.FlatAppearance.BorderSize = selected ? 2 : 1;
+        }
+
+        foreach (var (size, button) in _sizeButtons)
+        {
+            button.BackColor = size == _annotationSize ? Color.FromArgb(255, 24, 144, 255) : Color.FromArgb(240, 32, 32, 32);
         }
     }
 
@@ -828,10 +1216,14 @@ public sealed class ScreenshotOverlayForm : Form
         }
 
         var x = Math.Clamp(_selection.Left, 0, Math.Max(0, Width - _toolbar.Width));
-        var y = _selection.Bottom + 8;
-        if (y + ToolbarHeight > Height)
+        var optionsVisible = _optionsPanel is { Visible: true };
+        var totalHeight = _toolbar.Height + (optionsVisible ? _optionsPanel!.Height + OptionsGap : 0);
+
+        var y = _selection.Bottom + ToolbarGap;
+        if (y + totalHeight > Height)
         {
-            y = _selection.Top - ToolbarHeight - 8;
+            // Not enough room below the selection — flip the whole toolbar+options block above it instead.
+            y = _selection.Top - ToolbarGap - totalHeight;
         }
 
         if (y < 0)
@@ -841,6 +1233,13 @@ public sealed class ScreenshotOverlayForm : Form
 
         _toolbar.Location = new Point(x, y);
         _toolbar.BringToFront();
+
+        if (optionsVisible)
+        {
+            var optionsX = Math.Clamp(x, 0, Math.Max(0, Width - _optionsPanel!.Width));
+            _optionsPanel.Location = new Point(optionsX, y + _toolbar.Height + OptionsGap);
+            _optionsPanel.BringToFront();
+        }
     }
 
     // ------------------------------------------------------------------ finishing
@@ -878,6 +1277,21 @@ public sealed class ScreenshotOverlayForm : Form
             cropped.Save(dialog.FileName, ImageFormat.Png);
             Finish(new ScreenshotResult(ScreenshotOutcome.SavedToFile, dialog.FileName));
         }
+    }
+
+    private void PinToScreenAndFinish()
+    {
+        var cropped = CropSelection();
+        if (cropped is null)
+        {
+            return;
+        }
+
+        // PinnedScreenshotWindow takes ownership of the bitmap (disposes it when the window closes) —
+        // deliberately not wrapped in `using` here, since that would dispose it out from under the window.
+        var pinned = new PinnedScreenshotWindow(cropped);
+        pinned.Show();
+        Finish(new ScreenshotResult(ScreenshotOutcome.PinnedToScreen));
     }
 
     private Bitmap? CropSelection()

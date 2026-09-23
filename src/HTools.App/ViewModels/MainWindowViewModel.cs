@@ -15,7 +15,7 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     private readonly Func<ToolDescriptor, object> _pageFactory;
 
     [ObservableProperty]
-    private string _selectedGroupKey = NavGroupKeys.Favorites;
+    private string _selectedGroupKey = NavGroupKeys.Home;
 
     [ObservableProperty]
     private object? _currentPage;
@@ -33,7 +33,7 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
 
         NavGroups =
         [
-            new NavGroupViewModel(NavGroupKeys.Favorites, "⭐", "Nav.Favorites", loc),
+            new NavGroupViewModel(NavGroupKeys.Home, "🏠", "Nav.Home", loc),
             new NavGroupViewModel(NavGroupKeys.DevTools, "🛠", "Nav.DevTools", loc),
             new NavGroupViewModel(NavGroupKeys.NetworkTools, "🌐", "Nav.NetworkTools", loc),
             new NavGroupViewModel(NavGroupKeys.Utilities, "🧰", "Nav.Utilities", loc),

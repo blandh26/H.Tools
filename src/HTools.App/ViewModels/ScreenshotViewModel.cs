@@ -69,15 +69,20 @@ public sealed partial class ScreenshotViewModel : LocalizedViewModelBase
         Loc.Translate("Screenshot.OverlayHint"),
         Loc.Translate("Screenshot.SaveDialogFilter"),
         Loc.Translate("Screenshot.Tool.Rectangle"),
+        Loc.Translate("Screenshot.Tool.RectangleFilled"),
         Loc.Translate("Screenshot.Tool.Ellipse"),
+        Loc.Translate("Screenshot.Tool.EllipseFilled"),
+        Loc.Translate("Screenshot.Tool.Line"),
         Loc.Translate("Screenshot.Tool.Arrow"),
         Loc.Translate("Screenshot.Tool.Freehand"),
         Loc.Translate("Screenshot.Tool.Text"),
         Loc.Translate("Screenshot.Tool.Mosaic"),
         Loc.Translate("Screenshot.Action.Undo"),
+        Loc.Translate("Screenshot.Action.Pin"),
         Loc.Translate("Screenshot.Action.Copy"),
         Loc.Translate("Screenshot.Action.Save"),
-        Loc.Translate("Screenshot.Action.Cancel"));
+        Loc.Translate("Screenshot.Action.Cancel"),
+        Loc.Translate("Screenshot.CustomColor"));
 
     [RelayCommand]
     private async Task RecordHotkeyAsync()
@@ -160,6 +165,7 @@ public sealed partial class ScreenshotViewModel : LocalizedViewModelBase
             {
                 ScreenshotOutcome.CopiedToClipboard => Loc.Translate("Screenshot.StatusCopied"),
                 ScreenshotOutcome.SavedToFile => string.Format(Loc.Translate("Screenshot.StatusSaved"), result.SavedFilePath),
+                ScreenshotOutcome.PinnedToScreen => Loc.Translate("Screenshot.StatusPinned"),
                 _ => string.Empty,
             };
         });
