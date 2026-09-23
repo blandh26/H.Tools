@@ -34,6 +34,21 @@ public sealed class ScreenshotOverlayForm : Form
     private const int OptionsGap = 4;
     private const int MinSelectionSize = 4;
 
+    // Every toolbar/options-row control is sized+margined to occupy exactly this much vertical space
+    // (ButtonSize + its own top/bottom margin), so a FlowLayoutPanel row — whose height is driven by
+    // its tallest child — comes out to one consistent height instead of jittering per-row depending on
+    // which controls (buttons vs. the separator) happen to be tallest that row.
+    private const int ButtonSize = 30;
+    private const int ButtonCellHeight = 36; // ButtonSize + 3px top/bottom margin
+    private const int CornerRadius = 6;
+    private static readonly Color ToolbarBackground = Color.FromArgb(248, 30, 30, 32);
+
+    // WinForms Button.BackColor ignores alpha (it always paints opaque), so "blending into the panel"
+    // means literally matching the panel's own background color rather than using a transparent one.
+    private static readonly Color ButtonIdleColor = ToolbarBackground;
+    private static readonly Color ButtonHoverColor = Color.FromArgb(255, 58, 58, 64);
+    private static readonly Color ButtonActiveColor = Color.FromArgb(255, 24, 144, 255);
+
     /// <summary>Pen widths offered by the size picker — mirrors the reference project's five fixed
     /// brush sizes (its size picker doubles as the text tool's font-size increment, see <see cref="BeginTextEntry"/>).</summary>
     private static readonly int[] PenSizes = [1, 3, 5, 8, 12];
@@ -984,15 +999,7 @@ public sealed class ScreenshotOverlayForm : Form
 
     private void BuildToolbar()
     {
-        var panel = new FlowLayoutPanel
-        {
-            AutoSize = true,
-            BackColor = Color.FromArgb(240, 32, 32, 32),
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
-            Padding = new Padding(4),
-            Visible = false,
-        };
+        var panel = CreateBarPanel();
 
         AddToolButton(panel, AnnotationTool.Rectangle, "▭", _texts.ToolRectangle);
         AddToolButton(panel, AnnotationTool.RectangleFilled, "■", _texts.ToolRectangleFilled);
@@ -1021,15 +1028,7 @@ public sealed class ScreenshotOverlayForm : Form
     /// project's "panel1", which likewise only appears once an annotation tool is selected.</summary>
     private void BuildOptionsPanel()
     {
-        var panel = new FlowLayoutPanel
-        {
-            AutoSize = true,
-            BackColor = Color.FromArgb(240, 32, 32, 32),
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
-            Padding = new Padding(4),
-            Visible = false,
-        };
+        var panel = CreateBarPanel();
 
         foreach (var size in PenSizes)
         {
@@ -1050,9 +1049,28 @@ public sealed class ScreenshotOverlayForm : Form
         Controls.Add(panel);
     }
 
+    /// <summary>Shared shell for both toolbar rows: a dark rounded-rect panel whose corner radius is
+    /// reapplied on every resize (its size isn't known until WinForms lays out the buttons added to it
+    /// afterwards, and AutoSize can change it again later as tools/options toggle visibility).</summary>
+    private static FlowLayoutPanel CreateBarPanel()
+    {
+        var panel = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            BackColor = ToolbarBackground,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(6, 3, 6, 3),
+            Visible = false,
+        };
+        panel.SizeChanged += (_, _) => ApplyRoundedRegion(panel, panel.Width, panel.Height, CornerRadius);
+        return panel;
+    }
+
     private void AddToolButton(FlowLayoutPanel panel, AnnotationTool tool, string glyph, string tooltip)
     {
-        var button = MakeButton(glyph);
+        var button = MakeGlyphButton(glyph);
         _toolTip.SetToolTip(button, tooltip);
         button.Click += (_, _) =>
         {
@@ -1070,23 +1088,24 @@ public sealed class ScreenshotOverlayForm : Form
 
     private void AddSizeButton(FlowLayoutPanel panel, int size)
     {
-        var button = new Button
-        {
-            Size = new Size(28, 32),
-            FlatStyle = FlatStyle.Flat,
-            BackColor = Color.FromArgb(240, 32, 32, 32),
-            Margin = new Padding(2),
-            FlatAppearance = { BorderSize = 0 },
-        };
+        var button = MakeSlotButton();
 
-        // Owner-drawn: a plain filled circle whose diameter scales with the pen size it represents,
-        // so the button itself previews the stroke weight instead of needing a numeric label.
+        // Owner-drawn: a filled circle whose diameter scales with the pen size it represents, so the
+        // button previews the actual stroke weight instead of needing a numeric label; a ring appears
+        // around it while selected, the same selection language the color swatches below use.
         button.Paint += (_, e) =>
         {
-            var diameter = Math.Clamp(size, 2, 20);
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            var diameter = Math.Clamp(4 + size, 8, 22);
             var rect = new Rectangle((button.Width - diameter) / 2, (button.Height - diameter) / 2, diameter, diameter);
             using var brush = new SolidBrush(Color.White);
             e.Graphics.FillEllipse(brush, rect);
+
+            if (size == _annotationSize)
+            {
+                using var ringPen = new Pen(ButtonActiveColor, 2f);
+                e.Graphics.DrawEllipse(ringPen, Rectangle.Inflate(rect, 3, 3));
+            }
         };
 
         _toolTip.SetToolTip(button, $"{size}px");
@@ -1101,15 +1120,32 @@ public sealed class ScreenshotOverlayForm : Form
 
     private void AddColorButton(FlowLayoutPanel panel, Color color)
     {
-        var button = new Button
+        var button = MakeSlotButton();
+
+        // A small centered dot rather than a solid-filled square: it reads as "a color option" instead
+        // of a wall of flat rectangles, and leaves room for a selection ring without resizing anything.
+        button.Paint += (_, e) =>
         {
-            Size = new Size(20, 32),
-            BackColor = color,
-            FlatStyle = FlatStyle.Flat,
-            Margin = new Padding(2, 4, 2, 4),
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            const int dotSize = 16;
+            var rect = new Rectangle((button.Width - dotSize) / 2, (button.Height - dotSize) / 2, dotSize, dotSize);
+            using var brush = new SolidBrush(color);
+            e.Graphics.FillEllipse(brush, rect);
+
+            if (color.ToArgb() == _annotationColor.ToArgb())
+            {
+                using var ringPen = new Pen(ButtonActiveColor, 2f);
+                e.Graphics.DrawEllipse(ringPen, Rectangle.Inflate(rect, 3, 3));
+            }
+            else if (color.GetBrightness() > 0.85f)
+            {
+                // Near-white swatches would otherwise disappear against the dark toolbar background.
+                using var outline = new Pen(Color.FromArgb(120, 255, 255, 255), 1f);
+                e.Graphics.DrawEllipse(outline, rect);
+            }
         };
-        button.FlatAppearance.BorderSize = 1;
-        button.FlatAppearance.BorderColor = Color.White;
+
+        _toolTip.SetToolTip(button, color.Name);
         button.Click += (_, _) =>
         {
             _annotationColor = color;
@@ -1121,17 +1157,7 @@ public sealed class ScreenshotOverlayForm : Form
 
     private void AddCustomColorButton(FlowLayoutPanel panel)
     {
-        var button = new Button
-        {
-            Size = new Size(28, 32),
-            FlatStyle = FlatStyle.Flat,
-            BackColor = Color.FromArgb(240, 32, 32, 32),
-            ForeColor = Color.White,
-            Text = "🎨",
-            Font = new Font("Segoe UI Symbol", 11f),
-            Margin = new Padding(2),
-            FlatAppearance = { BorderSize = 0 },
-        };
+        var button = MakeGlyphButton("🎨");
         _toolTip.SetToolTip(button, _texts.CustomColor);
         button.Click += (_, _) =>
         {
@@ -1147,51 +1173,101 @@ public sealed class ScreenshotOverlayForm : Form
 
     private void AddActionButton(FlowLayoutPanel panel, string glyph, string tooltip, EventHandler onClick)
     {
-        var button = MakeButton(glyph);
+        var button = MakeGlyphButton(glyph);
         _toolTip.SetToolTip(button, tooltip);
         button.Click += onClick;
         panel.Controls.Add(button);
     }
 
+    /// <summary>A thin divider sized so its total footprint (height + margin) exactly matches every
+    /// button's own footprint (<see cref="ButtonCellHeight"/>) — this is what keeps the row a single
+    /// consistent height instead of being stretched by whichever control happens to be tallest.</summary>
     private static void AddSeparator(FlowLayoutPanel panel)
     {
-        panel.Controls.Add(new Panel { Size = new Size(1, 26), BackColor = Color.FromArgb(255, 90, 90, 90), Margin = new Padding(4, 6, 4, 6) });
+        const int lineHeight = ButtonSize - 8;
+        const int verticalMargin = (ButtonCellHeight - lineHeight) / 2;
+        panel.Controls.Add(new Panel
+        {
+            Size = new Size(1, lineHeight),
+            BackColor = Color.FromArgb(255, 80, 80, 86),
+            Margin = new Padding(6, verticalMargin, 6, verticalMargin),
+        });
     }
 
-    private static Button MakeButton(string glyph)
+    /// <summary>A uniform-size, rounded-corner slot with no icon of its own — used for the size and
+    /// color swatches, which each own-draw their content in <see cref="Control.Paint"/> instead.</summary>
+    private static Button MakeSlotButton() => MakeButtonCore(text: string.Empty, fontSize: 0f);
+
+    private static Button MakeGlyphButton(string glyph) => MakeButtonCore(glyph, fontSize: 13f);
+
+    private static Button MakeButtonCore(string text, float fontSize)
     {
-        return new Button
+        var button = new Button
         {
-            Text = glyph,
-            Size = new Size(32, 32),
+            Text = text,
+            Size = new Size(ButtonSize, ButtonSize),
             FlatStyle = FlatStyle.Flat,
-            BackColor = Color.FromArgb(240, 32, 32, 32),
+            BackColor = ButtonIdleColor,
             ForeColor = Color.White,
-            Font = new Font("Segoe UI Symbol", 12f),
-            Margin = new Padding(2),
+            Margin = new Padding(3),
+            TextAlign = ContentAlignment.MiddleCenter,
             FlatAppearance = { BorderSize = 0 },
         };
+
+        if (fontSize > 0f)
+        {
+            button.Font = new Font("Segoe UI Symbol", fontSize);
+        }
+
+        ApplyRoundedRegion(button, ButtonSize, ButtonSize, CornerRadius);
+
+        // Hover feedback: Tag always holds "the color this button should idle at" (set here and
+        // whenever UpdateToolButtonHighlight changes a button's state), so leaving the button restores
+        // the correct idle/selected color rather than a hardcoded default.
+        button.Tag = ButtonIdleColor;
+        button.MouseEnter += (_, _) => button.BackColor = ButtonHoverColor;
+        button.MouseLeave += (_, _) => button.BackColor = (Color)button.Tag!;
+
+        return button;
+    }
+
+    private static void ApplyRoundedRegion(Control control, int width, int height, int radius)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            return;
+        }
+
+        using var path = new GraphicsPath();
+        var d = radius * 2;
+        var bounds = new Rectangle(0, 0, width, height);
+        path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
+        path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
+        path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
+        path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
+        path.CloseFigure();
+        control.Region = new Region(path);
     }
 
     private void UpdateToolButtonHighlight()
     {
         foreach (var (tool, button) in _toolButtons)
         {
-            button.BackColor = tool == _currentTool ? Color.FromArgb(255, 24, 144, 255) : Color.FromArgb(240, 32, 32, 32);
+            var color = tool == _currentTool ? ButtonActiveColor : ButtonIdleColor;
+            button.BackColor = color;
+            button.Tag = color;
         }
 
-        // Color.== compares more than just the ARGB value (it also compares the "known color" name
-        // flags), so two colors that look identical can compare unequal — ToArgb() sidesteps that trap.
-        foreach (var (color, button) in _colorButtons)
+        // Size/color swatches draw their own selection ring in Paint rather than changing BackColor,
+        // so all they need here is a repaint to pick up the new _annotationColor/_annotationSize.
+        foreach (var (_, button) in _colorButtons)
         {
-            var selected = color.ToArgb() == _annotationColor.ToArgb();
-            button.FlatAppearance.BorderColor = selected ? Color.FromArgb(255, 24, 144, 255) : Color.White;
-            button.FlatAppearance.BorderSize = selected ? 2 : 1;
+            button.Invalidate();
         }
 
-        foreach (var (size, button) in _sizeButtons)
+        foreach (var (_, button) in _sizeButtons)
         {
-            button.BackColor = size == _annotationSize ? Color.FromArgb(255, 24, 144, 255) : Color.FromArgb(240, 32, 32, 32);
+            button.Invalidate();
         }
     }
 
