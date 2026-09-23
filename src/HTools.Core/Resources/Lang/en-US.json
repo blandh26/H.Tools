@@ -154,5 +154,19 @@
   "SystemMonitor.GpuTemperature": "GPU temperature",
   "SystemMonitor.Network": "Network",
   "Tool.SystemMonitor.Description": "Monitor CPU, memory, network, hardware sensors, and device details",
-  "SystemMonitor.Unavailable": "Unavailable"
+  "SystemMonitor.Unavailable": "Unavailable",
+  "SystemMonitor.Category.Battery": "Battery",
+  "SystemMonitor.Category.Motherboard": "Motherboard",
+  "SystemMonitor.HardwareCategory": "Category",
+  "SystemMonitor.Category.Storage": "Storage",
+  "SystemMonitor.HardwareDetails": "Hardware details",
+  "SystemMonitor.Category.Audio": "Audio",
+  "SystemMonitor.Category.Display": "Display",
+  "SystemMonitor.Category.Volumes": "Volumes",
+  "SystemMonitor.Category.Graphics": "Graphics",
+  "SystemMonitor.Category.Bios": "BIOS",
+  "SystemMonitor.Category.Network": "Network",
+  "SystemMonitor.Category.System": "System",
+  "SystemMonitor.Category.Processor": "Processor",
+  "SystemMonitor.Category.Memory": "Memory"
 }

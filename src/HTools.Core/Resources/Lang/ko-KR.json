@@ -154,5 +154,19 @@
   "SystemMonitor.GpuTemperature": "GPU 온도",
   "SystemMonitor.Network": "네트워크",
   "Tool.SystemMonitor.Description": "CPU, 메모리, 네트워크, 센서 및 하드웨어 정보를 확인합니다",
-  "SystemMonitor.Unavailable": "사용할 수 없음"
+  "SystemMonitor.Unavailable": "사용할 수 없음",
+  "SystemMonitor.Category.Battery": "배터리",
+  "SystemMonitor.Category.Motherboard": "메인보드",
+  "SystemMonitor.HardwareCategory": "분류",
+  "SystemMonitor.Category.Storage": "저장 장치",
+  "SystemMonitor.HardwareDetails": "하드웨어 정보",
+  "SystemMonitor.Category.Audio": "오디오",
+  "SystemMonitor.Category.Display": "디스플레이",
+  "SystemMonitor.Category.Volumes": "볼륨",
+  "SystemMonitor.Category.Graphics": "그래픽",
+  "SystemMonitor.Category.Bios": "BIOS",
+  "SystemMonitor.Category.Network": "네트워크",
+  "SystemMonitor.Category.System": "시스템",
+  "SystemMonitor.Category.Processor": "프로세서",
+  "SystemMonitor.Category.Memory": "메모리"
 }

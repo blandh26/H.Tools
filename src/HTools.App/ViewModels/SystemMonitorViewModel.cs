@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using HTools.App.Services;
 using HTools.Core.Services;
@@ -15,10 +14,10 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
     private readonly Queue<double> _memoryHistory = new();
     private readonly Queue<double> _downloadHistory = new();
     private readonly Queue<double> _uploadHistory = new();
+    private IReadOnlyList<HardwareSensor> _latestSensors = [];
+    private IReadOnlyList<HardwareInfoRow> _hardwareRows = [];
 
     public SystemMonitorViewModel(ILocalizationService loc) : base(loc) { }
-
-    public ObservableCollection<HardwareSensor> Sensors { get; } = [];
 
     public string Title => Loc.Translate("Tool.SystemMonitor.Name");
 
@@ -30,12 +29,9 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
     public string GpuTemperatureLabel => Loc.Translate("SystemMonitor.GpuTemperature");
     public string DownloadLabel => Loc.Translate("SystemMonitor.Download");
     public string UploadLabel => Loc.Translate("SystemMonitor.Upload");
-    public string SensorsLabel => Loc.Translate("SystemMonitor.Sensors");
     public string HardwareLabel => Loc.Translate("SystemMonitor.Hardware");
-    public string DeviceLabel => Loc.Translate("SystemMonitor.Device");
-    public string SensorLabel => Loc.Translate("SystemMonitor.Sensor");
-    public string TypeLabel => Loc.Translate("SystemMonitor.Type");
-    public string ValueLabel => Loc.Translate("SystemMonitor.Value");
+    public string HardwareCategoryLabel => Loc.Translate("SystemMonitor.HardwareCategory");
+    public string HardwareDetailsLabel => Loc.Translate("SystemMonitor.HardwareDetails");
 
     public double MemoryPercent => MemoryTotalBytes == 0 ? 0 : MemoryUsedBytes * 100d / MemoryTotalBytes;
 
@@ -57,10 +53,6 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
 
     public string UnavailableText => Loc.Translate("SystemMonitor.Unavailable");
 
-    public string SensorStatus => Sensors.Any(s => s.SensorType == "Temperature")
-        ? string.Format(Loc.Translate("SystemMonitor.TemperatureCount"), Sensors.Count(s => s.SensorType == "Temperature"))
-        : Loc.Translate("SystemMonitor.NoSensors");
-
     public string UpdatedAtText => UpdatedAt is null ? Loc.Translate("SystemMonitor.Loading") : $"{Loc.Translate("SystemMonitor.UpdatedAt")} {UpdatedAt:HH:mm:ss}";
 
     [ObservableProperty] private double _cpuPercent;
@@ -72,7 +64,7 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
     [ObservableProperty] private double[] _memoryHistoryValues = [];
     [ObservableProperty] private double[] _downloadHistoryValues = [];
     [ObservableProperty] private double[] _uploadHistoryValues = [];
-    [ObservableProperty] private IReadOnlyList<string> _hardwareInventory = [];
+    [ObservableProperty] private IReadOnlyList<HardwareInfoDisplayRow> _hardwareInventory = [];
     [ObservableProperty] private DateTime? _updatedAt;
     [ObservableProperty] private bool _isMonitoring;
     [ObservableProperty] private string? _errorMessage;
@@ -114,7 +106,11 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         {
             await Task.Run(_monitor.Open, cancellationToken);
             var inventory = await Task.Run(_monitor.ReadHardwareInventory, cancellationToken);
-            Dispatcher.UIThread.Post(() => HardwareInventory = inventory);
+            Dispatcher.UIThread.Post(() =>
+            {
+                _hardwareRows = inventory;
+                RefreshHardwareInventory();
+            });
             while (!cancellationToken.IsCancellationRequested)
             {
                 var snapshot = await Task.Run(_monitor.ReadSnapshot, cancellationToken);
@@ -136,8 +132,7 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         MemoryUsedBytes = snapshot.MemoryUsedBytes;
         DownloadBytesPerSecond = snapshot.DownloadBytesPerSecond;
         UploadBytesPerSecond = snapshot.UploadBytesPerSecond;
-        Sensors.Clear();
-        foreach (var sensor in snapshot.Sensors) Sensors.Add(sensor);
+        _latestSensors = snapshot.Sensors;
         UpdatedAt = DateTime.Now;
         ErrorMessage = null;
         Add(_cpuHistory, CpuPercent);
@@ -152,7 +147,6 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         OnPropertyChanged(nameof(GpuTemperatureText));
         OnPropertyChanged(nameof(CpuTemperatureDisplay));
         OnPropertyChanged(nameof(GpuTemperatureDisplay));
-        OnPropertyChanged(nameof(SensorStatus));
     }
 
     private static void Add(Queue<double> queue, double value)
@@ -161,9 +155,12 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         while (queue.Count > 60) queue.Dequeue();
     }
 
+    private void RefreshHardwareInventory() => HardwareInventory = _hardwareRows.Select(row =>
+        new HardwareInfoDisplayRow(Loc.Translate($"SystemMonitor.Category.{row.Category}"), row.Details)).ToArray();
+
     private string TemperatureText(params string[] hardwareHints)
     {
-        var matches = Sensors.Where(s => s.SensorType == "Temperature" && hardwareHints.Any(h =>
+        var matches = _latestSensors.Where(s => s.SensorType == "Temperature" && hardwareHints.Any(h =>
                 s.HardwareType.Contains(h, StringComparison.OrdinalIgnoreCase)
                 || s.Hardware.Contains(h, StringComparison.OrdinalIgnoreCase)))
             .Select(s => double.TryParse(s.Value.Replace("°C", "").Trim(), out var value) ? value : (double?)null)
@@ -186,14 +183,11 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         OnPropertyChanged(nameof(GpuTemperatureLabel));
         OnPropertyChanged(nameof(DownloadLabel));
         OnPropertyChanged(nameof(UploadLabel));
-        OnPropertyChanged(nameof(SensorsLabel));
         OnPropertyChanged(nameof(HardwareLabel));
-        OnPropertyChanged(nameof(DeviceLabel));
-        OnPropertyChanged(nameof(SensorLabel));
-        OnPropertyChanged(nameof(TypeLabel));
-        OnPropertyChanged(nameof(ValueLabel));
+        OnPropertyChanged(nameof(HardwareCategoryLabel));
+        OnPropertyChanged(nameof(HardwareDetailsLabel));
+        RefreshHardwareInventory();
         OnPropertyChanged(nameof(UnavailableText));
-        OnPropertyChanged(nameof(SensorStatus));
         OnPropertyChanged(nameof(UpdatedAtText));
     }
 
@@ -204,3 +198,5 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         _monitor.Dispose();
     }
 }
+
+public sealed record HardwareInfoDisplayRow(string Category, string Details);

@@ -154,5 +154,19 @@
   "SystemMonitor.GpuTemperature": "GPU 温度",
   "SystemMonitor.Network": "ネットワーク",
   "Tool.SystemMonitor.Description": "CPU、メモリ、ネットワーク、センサー、ハードウェア情報を表示",
-  "SystemMonitor.Unavailable": "利用不可"
+  "SystemMonitor.Unavailable": "利用不可",
+  "SystemMonitor.Category.Battery": "バッテリー",
+  "SystemMonitor.Category.Motherboard": "マザーボード",
+  "SystemMonitor.HardwareCategory": "分類",
+  "SystemMonitor.Category.Storage": "ストレージ",
+  "SystemMonitor.HardwareDetails": "ハードウェア情報",
+  "SystemMonitor.Category.Audio": "オーディオ",
+  "SystemMonitor.Category.Display": "ディスプレイ",
+  "SystemMonitor.Category.Volumes": "ボリューム",
+  "SystemMonitor.Category.Graphics": "グラフィックス",
+  "SystemMonitor.Category.Bios": "BIOS",
+  "SystemMonitor.Category.Network": "ネットワーク",
+  "SystemMonitor.Category.System": "システム",
+  "SystemMonitor.Category.Processor": "プロセッサ",
+  "SystemMonitor.Category.Memory": "メモリ"
 }

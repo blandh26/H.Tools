@@ -55,38 +55,38 @@ public sealed class SystemMonitorService : IDisposable
         return new LiveSystemSnapshot(cpu, memory.TotalBytes, memory.UsedBytes, download, upload, sensors);
     }
 
-    public IReadOnlyList<string> ReadHardwareInventory()
+    public IReadOnlyList<HardwareInfoRow> ReadHardwareInventory()
     {
-        var items = new List<string>
+        var items = new List<HardwareInfoRow>
         {
-            $"{Environment.MachineName} · {Environment.OSVersion.VersionString} · {RuntimeInformation.OSArchitecture}",
+            new("System", $"{Environment.MachineName} · {Environment.OSVersion.VersionString} · {RuntimeInformation.OSArchitecture}"),
         };
 
-        AddWmi(items, "SELECT Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed FROM Win32_Processor",
-            o => $"CPU · {o["Name"]} · {o["NumberOfCores"]} cores / {o["NumberOfLogicalProcessors"]} threads · {o["MaxClockSpeed"]} MHz");
-        AddWmi(items, "SELECT Manufacturer, Product, SerialNumber FROM Win32_BaseBoard",
-            o => $"Motherboard · {o["Manufacturer"]} {o["Product"]} · S/N {o["SerialNumber"]}");
-        AddWmi(items, "SELECT Manufacturer, SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS",
-            o => $"BIOS · {o["Manufacturer"]} {o["SMBIOSBIOSVersion"]} · {o["ReleaseDate"]}");
-        AddWmi(items, "SELECT Name, AdapterRAM, DriverVersion FROM Win32_VideoController",
-            o => $"GPU · {o["Name"]} · {FormatBytes(ToUInt64(o["AdapterRAM"]))} · Driver {o["DriverVersion"]}");
-        AddWmi(items, "SELECT Manufacturer, Capacity, Speed, ConfiguredClockSpeed FROM Win32_PhysicalMemory",
-            o => $"Memory · {o["Manufacturer"]} · {FormatBytes(ToUInt64(o["Capacity"]))} · {o["Speed"]} MHz");
-        AddWmi(items, "SELECT Model, MediaType, Size, InterfaceType FROM Win32_DiskDrive",
-            o => $"Drive · {o["Model"]} · {FormatBytes(ToUInt64(o["Size"]))} · {o["InterfaceType"]}");
-        AddWmi(items, "SELECT Name, Manufacturer, Status FROM Win32_SoundDevice",
-            o => $"Audio · {o["Name"]} · {o["Manufacturer"]} · {o["Status"]}");
-        AddWmi(items, "SELECT Name, MonitorManufacturer, ScreenWidth, ScreenHeight, Status FROM Win32_DesktopMonitor",
-            o => $"Display · {o["Name"]} · {o["MonitorManufacturer"]} · {o["ScreenWidth"]} × {o["ScreenHeight"]} · {o["Status"]}");
-        AddWmi(items, "SELECT Name, Manufacturer, Status FROM Win32_Battery",
-            o => $"Battery · {o["Name"]} · {o["Manufacturer"]} · {o["Status"]}");
-        AddWmi(items, "SELECT NetConnectionID, Name, MACAddress, Speed FROM Win32_NetworkAdapter WHERE PhysicalAdapter = TRUE",
-            o => $"Network · {o["NetConnectionID"]} · {o["Name"]} · {o["MACAddress"]} · {FormatBits(ToUInt64(o["Speed"]))}");
+        AddWmi(items, "Processor", "SELECT Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed FROM Win32_Processor",
+            o => $"{o["Name"]} · {o["NumberOfCores"]} cores / {o["NumberOfLogicalProcessors"]} threads · {o["MaxClockSpeed"]} MHz");
+        AddWmi(items, "Motherboard", "SELECT Manufacturer, Product, SerialNumber FROM Win32_BaseBoard",
+            o => $"{o["Manufacturer"]} {o["Product"]} · S/N {o["SerialNumber"]}");
+        AddWmi(items, "Bios", "SELECT Manufacturer, SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS",
+            o => $"{o["Manufacturer"]} {o["SMBIOSBIOSVersion"]} · {o["ReleaseDate"]}");
+        AddWmi(items, "Graphics", "SELECT Name, AdapterRAM, DriverVersion FROM Win32_VideoController",
+            o => $"{o["Name"]} · {FormatBytes(ToUInt64(o["AdapterRAM"]))} · Driver {o["DriverVersion"]}");
+        AddWmi(items, "Memory", "SELECT Manufacturer, Capacity, Speed, ConfiguredClockSpeed FROM Win32_PhysicalMemory",
+            o => $"{o["Manufacturer"]} · {FormatBytes(ToUInt64(o["Capacity"]))} · {o["Speed"]} MHz");
+        AddWmi(items, "Storage", "SELECT Model, MediaType, Size, InterfaceType FROM Win32_DiskDrive",
+            o => $"{o["Model"]} · {FormatBytes(ToUInt64(o["Size"]))} · {o["InterfaceType"]}");
+        AddWmi(items, "Audio", "SELECT Name, Manufacturer, Status FROM Win32_SoundDevice",
+            o => $"{o["Name"]} · {o["Manufacturer"]} · {o["Status"]}");
+        AddWmi(items, "Display", "SELECT Name, MonitorManufacturer, ScreenWidth, ScreenHeight, Status FROM Win32_DesktopMonitor",
+            o => $"{o["Name"]} · {o["MonitorManufacturer"]} · {o["ScreenWidth"]} × {o["ScreenHeight"]} · {o["Status"]}");
+        AddWmi(items, "Battery", "SELECT Name, Manufacturer, Status FROM Win32_Battery",
+            o => $"{o["Name"]} · {o["Manufacturer"]} · {o["Status"]}");
+        AddWmi(items, "Network", "SELECT NetConnectionID, Name, MACAddress, Speed FROM Win32_NetworkAdapter WHERE PhysicalAdapter = TRUE",
+            o => $"{o["NetConnectionID"]} · {o["Name"]} · {o["MACAddress"]} · {FormatBits(ToUInt64(o["Speed"]))}");
 
         try
         {
             var drives = DriveInfo.GetDrives().Where(d => d.IsReady).Select(d =>
-                $"Volume · {d.Name} · {d.DriveFormat} · {FormatBytes((ulong)d.AvailableFreeSpace)} free / {FormatBytes((ulong)d.TotalSize)}");
+                new HardwareInfoRow("Volumes", $"{d.Name} · {d.DriveFormat} · {FormatBytes((ulong)d.AvailableFreeSpace)} free / {FormatBytes((ulong)d.TotalSize)}"));
             items.AddRange(drives);
         }
         catch { }
@@ -196,7 +196,7 @@ public sealed class SystemMonitorService : IDisposable
         }
     }
 
-    private static void AddWmi(List<string> output, string query, Func<ManagementBaseObject, string> format)
+    private static void AddWmi(List<HardwareInfoRow> output, string category, string query, Func<ManagementBaseObject, string> format)
     {
         try
         {
@@ -204,7 +204,7 @@ public sealed class SystemMonitorService : IDisposable
             using var results = searcher.Get();
             foreach (ManagementBaseObject item in results)
             {
-                using (item) output.Add(format(item));
+                using (item) output.Add(new HardwareInfoRow(category, format(item)));
             }
         }
         catch { }
@@ -272,3 +272,5 @@ public sealed record LiveSystemSnapshot(double CpuPercent, ulong MemoryTotalByte
     double DownloadBytesPerSecond, double UploadBytesPerSecond, IReadOnlyList<HardwareSensor> Sensors);
 
 public sealed record HardwareSensor(string Hardware, string HardwareType, string Name, string SensorType, string Value);
+
+public sealed record HardwareInfoRow(string Category, string Details);

@@ -5,8 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="720"
              x:Class="HTools.App.Views.SystemMonitorView">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="16" Margin="4">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                  AllowAutoHide="False">
+        <StackPanel Spacing="16" Margin="4,4,24,4">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Text="{Binding Title}" Classes="pageTitle" />
                 <TextBlock Grid.Column="1" Text="{Binding UpdatedAtText}" Classes="hint" VerticalAlignment="Center" />
@@ -70,30 +71,22 @@
 
             <Border Background="{DynamicResource AppSurfaceBrush}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{Binding SensorStatus}" Classes="hint" TextWrapping="Wrap" />
-                    <Grid ColumnDefinitions="2*,2*,*,*" ColumnSpacing="10" Margin="2,0,2,0">
-                        <TextBlock Text="{Binding DeviceLabel}" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="1" Text="{Binding SensorLabel}" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="2" Text="{Binding TypeLabel}" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="3" Text="{Binding ValueLabel}" FontWeight="SemiBold" />
-                    </Grid>
-                    <ItemsControl ItemsSource="{Binding Sensors}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="2*,2*,*,*" ColumnSpacing="10" Margin="2,4">
-                                    <TextBlock Text="{Binding Hardware}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="2" Text="{Binding SensorType}" Opacity="0.7" />
-                                    <TextBlock Grid.Column="3" Text="{Binding Value}" FontWeight="SemiBold" />
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <TextBlock Text="{Binding HardwareLabel}" FontWeight="SemiBold" Margin="0,8,0,0" />
+                    <TextBlock Text="{Binding HardwareLabel}" FontWeight="SemiBold" FontSize="18" Margin="0,0,0,4" />
+                    <Border Background="{DynamicResource AppAccentSoftBrush}" CornerRadius="5" Padding="10,8">
+                        <Grid ColumnDefinitions="160,*" ColumnSpacing="12">
+                            <TextBlock Text="{Binding HardwareCategoryLabel}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="1" Text="{Binding HardwareDetailsLabel}" FontWeight="SemiBold" />
+                        </Grid>
+                    </Border>
                     <ItemsControl ItemsSource="{Binding HardwareInventory}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,5" />
+                                <Border BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,0,1" Padding="10,9">
+                                    <Grid ColumnDefinitions="160,*" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding Category}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Details}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

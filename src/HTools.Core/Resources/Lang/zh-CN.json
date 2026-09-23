@@ -154,5 +154,19 @@
   "SystemMonitor.GpuTemperature": "GPU 温度",
   "SystemMonitor.Network": "网络",
   "Tool.SystemMonitor.Description": "查看 CPU、内存、网络、硬件传感器与设备信息",
-  "SystemMonitor.Unavailable": "不可用"
+  "SystemMonitor.Unavailable": "不可用",
+  "SystemMonitor.Category.Battery": "电池",
+  "SystemMonitor.Category.Motherboard": "主板",
+  "SystemMonitor.HardwareCategory": "分类",
+  "SystemMonitor.Category.Storage": "硬盘",
+  "SystemMonitor.HardwareDetails": "硬件信息",
+  "SystemMonitor.Category.Audio": "声卡",
+  "SystemMonitor.Category.Display": "显示器",
+  "SystemMonitor.Category.Volumes": "磁盘分区",
+  "SystemMonitor.Category.Graphics": "显卡",
+  "SystemMonitor.Category.Bios": "BIOS",
+  "SystemMonitor.Category.Network": "网卡",
+  "SystemMonitor.Category.System": "系统",
+  "SystemMonitor.Category.Processor": "处理器",
+  "SystemMonitor.Category.Memory": "内存"
 }
