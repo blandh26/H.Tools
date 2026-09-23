@@ -12,7 +12,7 @@
         Topmost="{Binding IsAlwaysOnTop}"
         WindowDecorations="None"
         TransparencyLevelHint="None"
-        Background="{DynamicResource SystemChromeLowColor}">
+        Background="{DynamicResource AppBorderBrush}">
 
     <!-- WindowDecorations="None" previously rendered a fully blank window. Root cause: on Windows, a
          chrome-less top-level window is NOT implicitly opaque the way a normal decorated window is —
@@ -23,12 +23,14 @@
          path that a remote/virtual display in this environment might not support. Both are set directly
          above on <Window>, not just on a child control. -->
     <Panel>
-        <Border BorderBrush="{DynamicResource SystemChromeMediumColor}" BorderThickness="1">
+        <Border x:Name="WindowFrame" Margin="5" CornerRadius="14" ClipToBounds="True"
+                Background="{DynamicResource AppPageBackgroundBrush}"
+                BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1">
             <Grid RowDefinitions="Auto,*">
                 <!-- Custom title bar: replaces the native one so a Pin (always-on-top) button can sit
                      directly left of Minimize, which native OS window chrome has no way to accommodate. -->
                 <Grid Grid.Row="0" x:Name="TitleBar" Height="36"
-                      Background="{DynamicResource SystemChromeLowColor}"
+                      Background="{DynamicResource AppSidebarBrush}"
                       PointerPressed="OnTitleBarPointerPressed"
                       ColumnDefinitions="Auto,*,Auto">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" IsHitTestVisible="False">
@@ -53,14 +55,16 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="1" ColumnDefinitions="220,*">
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
                     <!-- Sidebar -->
-                    <Border Grid.Column="0" Background="{DynamicResource SystemChromeLowColor}" Padding="12">
+                    <Border Grid.Column="0" Width="{Binding SidebarWidth}"
+                            Background="{DynamicResource AppSidebarBrush}"
+                            BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0" Padding="12">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top"
-                                       Text="{Binding AppTitle}"
-                                       FontSize="20" FontWeight="Bold"
-                                       Margin="8,8,8,20" />
+                            <Button DockPanel.Dock="Top" Classes="sidebarToggle"
+                                    Command="{Binding ToggleSidebarCommand}"
+                                    ToolTip.Tip="{Binding AppTitle}"
+                                    Content="≡" Margin="0,0,0,12" />
 
                             <ItemsControl ItemsSource="{Binding NavGroups}">
                                 <ItemsControl.ItemTemplate>
@@ -68,10 +72,12 @@
                                         <Button Classes="navItem"
                                                 Classes.selected="{Binding IsSelected}"
                                                 Command="{Binding #RootWindow.DataContext.SelectGroupCommand}"
-                                                CommandParameter="{Binding}">
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="{Binding Name}">
                                             <StackPanel Orientation="Horizontal" Spacing="10">
                                                 <TextBlock Text="{Binding Icon}" FontSize="16" />
-                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                                           IsVisible="{Binding #RootWindow.DataContext.IsSidebarExpanded}" />
                                             </StackPanel>
                                         </Button>
                                     </DataTemplate>

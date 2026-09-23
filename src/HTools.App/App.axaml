@@ -32,11 +32,25 @@
                  warning boxes, so it looked wrong whenever the app ran in light mode). -->
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#F4F6FA" />
+                    <SolidColorBrush x:Key="AppSidebarBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="AppSurfaceBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="AppSurfaceHoverBrush" Color="#F8FAFD" />
+                    <SolidColorBrush x:Key="AppBorderBrush" Color="#E2E7F0" />
+                    <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#E8EEFF" />
+                    <SolidColorBrush x:Key="AppSecondaryTextBrush" Color="#64748B" />
                     <Color x:Key="AppWarningBackgroundColor">#FFF7E0</Color>
                     <Color x:Key="AppWarningBorderColor">#E0A800</Color>
                     <Color x:Key="AppWarningForegroundColor">#8A6100</Color>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#171A21" />
+                    <SolidColorBrush x:Key="AppSidebarBrush" Color="#1D212B" />
+                    <SolidColorBrush x:Key="AppSurfaceBrush" Color="#222733" />
+                    <SolidColorBrush x:Key="AppSurfaceHoverBrush" Color="#292F3D" />
+                    <SolidColorBrush x:Key="AppBorderBrush" Color="#343B4B" />
+                    <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#303B59" />
+                    <SolidColorBrush x:Key="AppSecondaryTextBrush" Color="#A3AEC2" />
                     <Color x:Key="AppWarningBackgroundColor">#332E1F</Color>
                     <Color x:Key="AppWarningBorderColor">#B8860B</Color>
                     <Color x:Key="AppWarningForegroundColor">#E0A800</Color>
@@ -56,8 +70,16 @@
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Background" Value="Transparent" />
         </Style>
+        <Style Selector="Button.sidebarToggle">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
         <Style Selector="Button.navItem.selected">
-            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+            <Setter Property="Background" Value="{DynamicResource AppAccentSoftBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
         </Style>
 
         <!-- Type scale: one place to tune "what a page title looks like" / "what a secondary hint looks
@@ -82,6 +104,10 @@
             <Setter Property="VerticalAlignment" Value="Stretch" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{DynamicResource AppSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="14" />
         </Style>
         <!-- Hover reads as "this card lifted up", not a color change — matches the reference app-center
              grid, whose cards only ever gain a drop shadow on hover, nothing else. Effect (not Border's
@@ -91,6 +117,10 @@
             <Setter Property="Effect">
                 <DropShadowEffect OffsetX="0" OffsetY="4" BlurRadius="16" Color="Black" Opacity="0.25" />
             </Setter>
+        </Style>
+        <Style Selector="Button.toolCard:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AppSurfaceHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
         </Style>
 
         <Style Selector="Button.link">

@@ -1,14 +1,16 @@
 using Avalonia.Media;
-using Avalonia.Svg.Skia;
+using Avalonia.Media.Imaging;
+using HTools.Windows.Imaging;
 
 namespace HTools.App.Services;
 
 /// <summary>
 /// Colorful SVG replacements for a handful of tool-card icons that looked flat/low-quality as plain
-/// emoji glyphs (see HomeView's card template) — same approach as the screenshot overlay's own toolbar
-/// icons (HTools.Windows.Screenshot.ScreenshotIcons), just rendered through Avalonia.Svg.Skia here
-/// instead of System.Drawing since this runs in the Avalonia UI layer. Only tools with a genuinely
-/// better custom icon are listed here; everything else keeps its plain emoji glyph.
+/// emoji glyphs (see HomeView's card template). The SVG is rasterized to PNG by Svg.NET
+/// (<see cref="SvgRasterizer"/>) and loaded as an ordinary Avalonia <see cref="Bitmap"/> — deliberately
+/// NOT via the Avalonia.Svg.Skia package, whose current release targets Avalonia 11 and crashes every
+/// render frame under Avalonia 12 (see SvgRasterizer for details). Only tools with a genuinely better
+/// custom icon are listed here; everything else keeps its plain emoji glyph.
 /// </summary>
 internal static class AppIcons
 {
@@ -57,8 +59,9 @@ internal static class AppIcons
             return null;
         }
 
-        var source = SvgSource.LoadFromSvg(svg);
-        var image = new SvgImage { Source = source };
+        // Rasterized at 2x the 32px display size so it stays crisp on 150-200% scaled monitors.
+        using var png = new MemoryStream(SvgRasterizer.RenderPng(svg, 64));
+        var image = new Bitmap(png);
         Cache[toolId] = image;
         return image;
     }

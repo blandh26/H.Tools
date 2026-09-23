@@ -22,6 +22,11 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     [ObservableProperty]
     private bool _isAlwaysOnTop;
 
+    [ObservableProperty]
+    private bool _isSidebarExpanded = true;
+
+    public double SidebarWidth => IsSidebarExpanded ? 220 : 68;
+
     public MainWindowViewModel(
         ILocalizationService loc,
         SettingsViewModel settingsPage,
@@ -84,6 +89,9 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     [RelayCommand]
     private void GoHome() => CurrentPage = null;
 
+    [RelayCommand]
+    private void ToggleSidebar() => IsSidebarExpanded = !IsSidebarExpanded;
+
     private void OpenTool(ToolDescriptor descriptor) => CurrentPage = _pageFactory(descriptor);
 
     partial void OnCurrentPageChanged(object? value)
@@ -93,6 +101,8 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     }
 
     partial void OnSelectedGroupKeyChanged(string value) => OnPropertyChanged(nameof(CurrentContent));
+
+    partial void OnIsSidebarExpandedChanged(bool value) => OnPropertyChanged(nameof(SidebarWidth));
 
     protected override void OnLanguageChanged()
     {

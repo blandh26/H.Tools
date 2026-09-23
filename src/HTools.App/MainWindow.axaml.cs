@@ -11,6 +11,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         UpdateMaximizeGlyph();
+        UpdateWindowFrame();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
         if (change.Property == WindowStateProperty)
         {
             UpdateMaximizeGlyph();
+            UpdateWindowFrame();
         }
     }
 
@@ -78,5 +80,12 @@ public partial class MainWindow : Window
         // 🗗 (two overlapping squares) reads as "restore" the same way it does in every other app that
         // uses it for this purpose; 🗖 (one square) reads as "maximize".
         MaximizeGlyph.Text = WindowState == WindowState.Maximized ? "🗗" : "🗖";
+    }
+
+    private void UpdateWindowFrame()
+    {
+        var isMaximized = WindowState == WindowState.Maximized;
+        WindowFrame.Margin = isMaximized ? new Thickness(0) : new Thickness(5);
+        WindowFrame.CornerRadius = isMaximized ? new CornerRadius(0) : new CornerRadius(14);
     }
 }
