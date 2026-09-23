@@ -36,13 +36,13 @@
                                     Command="{Binding #Root.DataContext.OpenToolCommand}"
                                     CommandParameter="{Binding}">
                                 <Button.ContextMenu>
-                                    <ContextMenu Opened="OnToolContextMenuOpened">
-                                        <!-- Headers are assigned in OnToolContextMenuOpened: the menu is a
-                                             popup outside this view's name scope, so #Root bindings don't reach it. -->
-                                        <MenuItem Click="OnTogglePinClick" />
-                                        <Separator />
-                                        <MenuItem Click="OnEditToolClick" />
-                                        <MenuItem Click="OnDeleteToolClick" />
+                                    <!-- 菜单继承按钮的 DataContext（ToolCardViewModel），文字直接绑定卡片上的多语言属性；
+                                         编辑 / 删除只对用户自定义工具显示 -->
+                                    <ContextMenu>
+                                        <MenuItem Header="{Binding PinMenuHeader}" Click="OnTogglePinClick" />
+                                        <Separator IsVisible="{Binding IsCustom}" />
+                                        <MenuItem Header="{Binding EditMenuHeader}" Click="OnEditToolClick" IsVisible="{Binding IsCustom}" />
+                                        <MenuItem Header="{Binding DeleteMenuHeader}" Click="OnDeleteToolClick" IsVisible="{Binding IsCustom}" />
                                     </ContextMenu>
                                 </Button.ContextMenu>
                                 <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">

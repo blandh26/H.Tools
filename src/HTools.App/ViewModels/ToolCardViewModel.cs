@@ -66,9 +66,26 @@ public sealed partial class ToolCardViewModel : LocalizedViewModelBase
 
     public string Description => Descriptor is null ? _customTool!.Target : Loc.Translate(Descriptor.DescriptionKey);
 
+    // ── 卡片右键菜单文字 ──
+    // 直接绑定在卡片自身上：ContextMenu 会继承所附着按钮的 DataContext（即本卡片），
+    // 不依赖 #Root 名称作用域，也不依赖 Avalonia 12 中不会自动赋值的 ContextMenu.PlacementTarget
+    // （之前在 Opened 事件里通过 PlacementTarget 赋值，结果拿到 null 直接返回，菜单文字全部为空）。
+
+    /// <summary>"置顶" / "取消置顶"，随 <see cref="IsPinned"/> 切换。</summary>
+    public string PinMenuHeader => Loc.Translate(IsPinned ? "Home.Unpin" : "Home.PinToTop");
+
+    public string EditMenuHeader => Loc.Translate("Home.Edit");
+
+    public string DeleteMenuHeader => Loc.Translate("Home.Delete");
+
+    partial void OnIsPinnedChanged(bool value) => OnPropertyChanged(nameof(PinMenuHeader));
+
     protected override void OnLanguageChanged()
     {
         OnPropertyChanged(nameof(Name));
         OnPropertyChanged(nameof(Description));
+        OnPropertyChanged(nameof(PinMenuHeader));
+        OnPropertyChanged(nameof(EditMenuHeader));
+        OnPropertyChanged(nameof(DeleteMenuHeader));
     }
 }

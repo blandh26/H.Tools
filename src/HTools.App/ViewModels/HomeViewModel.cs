@@ -47,14 +47,6 @@ public sealed partial class HomeViewModel : LocalizedViewModelBase
 
     public string SearchPlaceholder => Loc.Translate("Home.SearchPlaceholder");
 
-    public string PinToTopLabel => Loc.Translate("Home.PinToTop");
-
-    public string UnpinLabel => Loc.Translate("Home.Unpin");
-
-    public string EditLabel => Loc.Translate("Home.Edit");
-
-    public string DeleteLabel => Loc.Translate("Home.Delete");
-
     public string DragToSortTooltip => Loc.Translate("Home.DragToSort");
 
     public string PinnedTooltip => Loc.Translate("Home.Pinned");

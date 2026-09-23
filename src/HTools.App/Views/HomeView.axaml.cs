@@ -32,35 +32,6 @@ public partial class HomeView : UserControl
         }
     }
 
-    private void OnToolContextMenuOpened(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not ContextMenu menu || menu.PlacementTarget?.DataContext is not ToolCardViewModel card
-            || DataContext is not HomeViewModel viewModel)
-        {
-            return;
-        }
-
-        foreach (var item in menu.Items.OfType<MenuItem>())
-        {
-            item.DataContext = card;
-        }
-
-        var entries = menu.Items.OfType<MenuItem>().ToArray();
-        if (entries.Length >= 3)
-        {
-            // Assigned on every open (not bound) so they always reflect the current language.
-            entries[0].Header = card.IsPinned ? viewModel.UnpinLabel : viewModel.PinToTopLabel;
-            entries[1].Header = viewModel.EditLabel;
-            entries[2].Header = viewModel.DeleteLabel;
-            entries[1].IsVisible = card.IsCustom;
-            entries[2].IsVisible = card.IsCustom;
-            if (menu.Items.OfType<Separator>().FirstOrDefault() is { } separator)
-            {
-                separator.IsVisible = card.IsCustom;
-            }
-        }
-    }
-
     private void OnTogglePinClick(object? sender, RoutedEventArgs e)
     {
         if ((sender as MenuItem)?.DataContext is ToolCardViewModel card && DataContext is HomeViewModel viewModel)
