@@ -118,24 +118,31 @@
             <Setter Property="Background" Value="#5B5B5B" />
         </Style>
 
-        <!-- Sidebar "pin to top" toggle — small icon button next to the app title, replacing the
-             custom-title-bar version of this after that broke the window entirely (see git history). -->
-        <Style Selector="ToggleButton.pinToggle">
-            <Setter Property="Width" Value="28" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Padding" Value="0" />
+        <!-- Custom title bar buttons (Pin/Minimize/Maximize/Close) -->
+        <Style Selector="Button.titleBarButton, ToggleButton.titleBarButton">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="36" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Cursor" Value="Hand" />
         </Style>
-        <Style Selector="ToggleButton.pinToggle:pointerover /template/ ContentPresenter">
+        <Style Selector="Button.titleBarButton:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource SystemChromeMediumColor}" />
         </Style>
-        <Style Selector="ToggleButton.pinToggle:checked /template/ ContentPresenter">
+        <Style Selector="ToggleButton.titleBarButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemChromeMediumColor}" />
+        </Style>
+        <Style Selector="ToggleButton.titleBarButton:checked /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+        <!-- Close gets the conventional red hover, distinct from the other three. -->
+        <Style Selector="Button.titleBarButton.closeButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E81123" />
+        </Style>
+        <Style Selector="Button.titleBarButton.closeButton:pointerover TextBlock">
+            <Setter Property="Foreground" Value="White" />
         </Style>
 
         <!-- Sun/moon theme switch: a pill track with a circular thumb that shows a sun glyph on the

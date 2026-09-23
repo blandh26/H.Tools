@@ -9,57 +9,105 @@
         MinWidth="640" MinHeight="420"
         Icon="avares://HTools.App/Assets/app.ico"
         Title="{Binding AppTitle}"
-        Topmost="{Binding IsAlwaysOnTop}">
+        Topmost="{Binding IsAlwaysOnTop}"
+        WindowDecorations="None"
+        TransparencyLevelHint="None"
+        Background="{DynamicResource SystemChromeLowColor}">
 
-    <!-- Back to native window chrome (minimize/maximize/close, resize, drag) after a custom
-         WindowDecorations="None" title bar twice rendered a fully blank window and couldn't be
-         verified visually in this environment — not worth the risk. The "pin to top" toggle that
-         custom bar existed for now lives in the sidebar header instead of next to Minimize. -->
-    <Grid ColumnDefinitions="220,*">
-        <!-- Sidebar -->
-        <Border Grid.Column="0" Background="{DynamicResource SystemChromeLowColor}" Padding="12">
-            <DockPanel>
-                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="8,8,8,20">
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding AppTitle}"
-                               FontSize="20" FontWeight="Bold"
-                               VerticalAlignment="Center" />
-                    <ToggleButton Grid.Column="1" Classes="pinToggle"
-                                  IsChecked="{Binding IsAlwaysOnTop}"
-                                  ToolTip.Tip="{Binding PinTooltip}">
-                        <TextBlock Text="📌" FontSize="14" />
-                    </ToggleButton>
+    <!-- WindowDecorations="None" previously rendered a fully blank window. Root cause: on Windows, a
+         chrome-less top-level window is NOT implicitly opaque the way a normal decorated window is —
+         the native frame used to be what guaranteed an opaque surface. Only setting a Background on an
+         inner Border (the first attempt) was not enough; the Window element's OWN Background is what
+         Avalonia's Win32 backend uses to decide the swap-chain/surface's opacity. TransparencyLevelHint
+         is pinned to "None" explicitly too, to rule out Avalonia attempting any acrylic/blur compositing
+         path that a remote/virtual display in this environment might not support. Both are set directly
+         above on <Window>, not just on a child control. -->
+    <Panel>
+        <Border BorderBrush="{DynamicResource SystemChromeMediumColor}" BorderThickness="1">
+            <Grid RowDefinitions="Auto,*">
+                <!-- Custom title bar: replaces the native one so a Pin (always-on-top) button can sit
+                     directly left of Minimize, which native OS window chrome has no way to accommodate. -->
+                <Grid Grid.Row="0" x:Name="TitleBar" Height="36"
+                      Background="{DynamicResource SystemChromeLowColor}"
+                      PointerPressed="OnTitleBarPointerPressed"
+                      ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" IsHitTestVisible="False">
+                        <TextBlock Text="{Binding AppTitle}" VerticalAlignment="Center" FontSize="12" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <ToggleButton x:Name="PinButton" Classes="titleBarButton"
+                                      IsChecked="{Binding IsAlwaysOnTop}"
+                                      ToolTip.Tip="{Binding PinTooltip}">
+                            <TextBlock Text="📌" FontSize="12" />
+                        </ToggleButton>
+                        <Button Classes="titleBarButton" Click="OnMinimizeClick" ToolTip.Tip="{Binding MinimizeTooltip}">
+                            <TextBlock Text="─" FontSize="12" />
+                        </Button>
+                        <Button x:Name="MaximizeButton" Classes="titleBarButton" Click="OnMaximizeRestoreClick" ToolTip.Tip="{Binding MaximizeTooltip}">
+                            <TextBlock x:Name="MaximizeGlyph" Text="🗖" FontSize="12" />
+                        </Button>
+                        <Button Classes="titleBarButton closeButton" Click="OnCloseClick" ToolTip.Tip="{Binding CloseTooltip}">
+                            <TextBlock Text="✕" FontSize="12" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
-                <ItemsControl ItemsSource="{Binding NavGroups}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Classes="navItem"
-                                    Classes.selected="{Binding IsSelected}"
-                                    Command="{Binding #RootWindow.DataContext.SelectGroupCommand}"
-                                    CommandParameter="{Binding}">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock Text="{Binding Icon}" FontSize="16" />
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </DockPanel>
+                <Grid Grid.Row="1" ColumnDefinitions="220,*">
+                    <!-- Sidebar -->
+                    <Border Grid.Column="0" Background="{DynamicResource SystemChromeLowColor}" Padding="12">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="{Binding AppTitle}"
+                                       FontSize="20" FontWeight="Bold"
+                                       Margin="8,8,8,20" />
+
+                            <ItemsControl ItemsSource="{Binding NavGroups}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="navItem"
+                                                Classes.selected="{Binding IsSelected}"
+                                                Command="{Binding #RootWindow.DataContext.SelectGroupCommand}"
+                                                CommandParameter="{Binding}">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <TextBlock Text="{Binding Icon}" FontSize="16" />
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Content -->
+                    <DockPanel Grid.Column="1" Margin="24">
+                        <StackPanel DockPanel.Dock="Top"
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    Margin="0,0,0,16"
+                                    IsVisible="{Binding ShowBackButton}">
+                            <Button Content="←" Command="{Binding GoHomeCommand}" />
+                        </StackPanel>
+
+                        <ContentControl Content="{Binding CurrentContent}" />
+                    </DockPanel>
+                </Grid>
+            </Grid>
         </Border>
 
-        <!-- Content -->
-        <DockPanel Grid.Column="1" Margin="24">
-            <StackPanel DockPanel.Dock="Top"
-                        Orientation="Horizontal"
-                        Spacing="10"
-                        Margin="0,0,0,16"
-                        IsVisible="{Binding ShowBackButton}">
-                <Button Content="←" Command="{Binding GoHomeCommand}" />
-            </StackPanel>
-
-            <ContentControl Content="{Binding CurrentContent}" />
-        </DockPanel>
-    </Grid>
+        <!-- Manual resize handles: thin transparent strips along each edge/corner, each calling
+             BeginResizeDrag for the matching WindowEdge. WindowDecorations="None" drops all native
+             resize behavior along with the rest of the OS chrome, so this replaces it. Corner handles
+             are declared after the edge handles so they render on top and win the hit-test at the
+             actual corner pixels, where an edge and a corner strip would otherwise overlap. -->
+        <Border Width="5" HorizontalAlignment="Left" Background="Transparent" Cursor="SizeWestEast" PointerPressed="OnResizeWest" />
+        <Border Width="5" HorizontalAlignment="Right" Background="Transparent" Cursor="SizeWestEast" PointerPressed="OnResizeEast" />
+        <Border Height="5" VerticalAlignment="Top" Background="Transparent" Cursor="SizeNorthSouth" PointerPressed="OnResizeNorth" />
+        <Border Height="5" VerticalAlignment="Bottom" Background="Transparent" Cursor="SizeNorthSouth" PointerPressed="OnResizeSouth" />
+        <Border Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Cursor="TopLeftCorner" PointerPressed="OnResizeNorthWest" />
+        <Border Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Cursor="TopRightCorner" PointerPressed="OnResizeNorthEast" />
+        <Border Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" Cursor="BottomLeftCorner" PointerPressed="OnResizeSouthWest" />
+        <Border Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" Cursor="BottomRightCorner" PointerPressed="OnResizeSouthEast" />
+    </Panel>
 </Window>

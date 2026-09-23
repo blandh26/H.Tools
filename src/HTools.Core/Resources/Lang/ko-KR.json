@@ -1,6 +1,9 @@
 {
   "App.Title": "H.Tools",
   "MainWindow.Pin": "항상 위",
+  "MainWindow.Minimize": "최소화",
+  "MainWindow.Maximize": "최대화",
+  "MainWindow.Close": "닫기",
   "Nav.Home": "앱 센터",
   "Nav.DevTools": "개발 도구",
   "Nav.Utilities": "자주 쓰는 도구",

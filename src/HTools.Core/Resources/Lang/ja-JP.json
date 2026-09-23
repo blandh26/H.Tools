@@ -1,6 +1,9 @@
 {
   "App.Title": "H.Tools",
   "MainWindow.Pin": "最前面に固定",
+  "MainWindow.Minimize": "最小化",
+  "MainWindow.Maximize": "最大化",
+  "MainWindow.Close": "閉じる",
   "Nav.Home": "アプリセンター",
   "Nav.DevTools": "開発ツール",
   "Nav.Utilities": "よく使うツール",

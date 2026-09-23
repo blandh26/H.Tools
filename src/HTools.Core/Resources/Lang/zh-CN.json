@@ -1,6 +1,9 @@
 {
   "App.Title": "H.Tools 工具箱",
   "MainWindow.Pin": "置顶",
+  "MainWindow.Minimize": "最小化",
+  "MainWindow.Maximize": "最大化",
+  "MainWindow.Close": "关闭",
   "Nav.Home": "应用中心",
   "Nav.DevTools": "开发工具",
   "Nav.Utilities": "常用工具",
