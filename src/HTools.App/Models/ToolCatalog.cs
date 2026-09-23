@@ -7,6 +7,7 @@ public static class ToolCatalog
         new ToolDescriptor("clipboard", NavGroupKeys.Utilities, "📋", "Tool.Clipboard.Name", "Tool.Clipboard.Description", IsAvailable: true),
         new ToolDescriptor("mouse-effect", NavGroupKeys.Utilities, "🖱", "Tool.MouseEffect.Name", "Tool.MouseEffect.Description", IsAvailable: true),
         new ToolDescriptor("screenshot", NavGroupKeys.Utilities, "✂", "Tool.Screenshot.Name", "Tool.Screenshot.Description", IsAvailable: true),
+        new ToolDescriptor("system-monitor", NavGroupKeys.Utilities, "📊", "Tool.SystemMonitor.Name", "Tool.SystemMonitor.Description", IsAvailable: true),
 
         // Each of these used to be one tab inside two combined "Mock Server" / "multi-function server"
         // tools; split into independent tools per the user's explicit request (see git history/commit

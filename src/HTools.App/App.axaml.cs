@@ -65,12 +65,14 @@ public partial class App : Application
 
             var screenshotService = new ScreenshotService(_nativeMessageLoop);
             var screenshotViewModel = new ScreenshotViewModel(loc, screenshotService, _hotkeyManager, settingsContext, dialogService);
+            var systemMonitorViewModel = new SystemMonitorViewModel(loc);
 
             object PageFactory(ToolDescriptor descriptor) => descriptor.Id switch
             {
                 "clipboard" => clipboardViewModel,
                 "mouse-effect" => mouseEffectViewModel,
                 "screenshot" => screenshotViewModel,
+                "system-monitor" => systemMonitorViewModel,
                 "mock-client" => mockClientViewModel,
                 "mock-echo-server" => mockEchoServerViewModel,
                 "static-file-server" => staticFileServerViewModel,
@@ -119,6 +121,7 @@ public partial class App : Application
                 uploadServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 proxyServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 latencyServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                systemMonitorViewModel.Dispose();
                 _hotkeyManager.Dispose();
                 _nativeMessageLoop.Dispose();
             };
