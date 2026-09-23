@@ -11,7 +11,5 @@ public static class ToolCatalog
         new ToolDescriptor("kestrel-server", NavGroupKeys.NetworkTools, "📡", "Tool.KestrelServer.Name", "Tool.KestrelServer.Description", IsAvailable: true),
     ];
 
-    public static ToolDescriptor? FindById(string id) => All.FirstOrDefault(t => t.Id == id);
-
     public static IEnumerable<ToolDescriptor> ForGroup(string groupKey) => All.Where(t => t.GroupKey == groupKey);
 }

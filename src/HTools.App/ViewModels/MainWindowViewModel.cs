@@ -2,16 +2,12 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HTools.App.Models;
-using HTools.App.Services;
 using HTools.Core.Services;
 
 namespace HTools.App.ViewModels;
 
 public sealed partial class MainWindowViewModel : LocalizedViewModelBase
 {
-    private const int MaxRecentTools = 5;
-
-    private readonly AppSettingsContext _settings;
     private readonly Func<ToolDescriptor, object> _pageFactory;
 
     [ObservableProperty]
@@ -20,14 +16,18 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     [ObservableProperty]
     private object? _currentPage;
 
+    /// <summary>Whether the main window should stay above every other window. Session-only by design
+    /// (not persisted) — it's a "right now" toggle, not a lasting preference, matching how always-on-top
+    /// works in most other apps that offer it.</summary>
+    [ObservableProperty]
+    private bool _isAlwaysOnTop;
+
     public MainWindowViewModel(
         ILocalizationService loc,
-        AppSettingsContext settings,
         SettingsViewModel settingsPage,
         Func<ToolDescriptor, object> pageFactory)
         : base(loc)
     {
-        _settings = settings;
         _pageFactory = pageFactory;
         Settings = settingsPage;
 
@@ -43,7 +43,6 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
 
         Home = new HomeViewModel(loc, OpenTool, pageFactory);
         Home.ShowGroup(SelectedGroupKey);
-        RefreshRecentTools();
     }
 
     public ObservableCollection<NavGroupViewModel> NavGroups { get; }
@@ -53,6 +52,14 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     public SettingsViewModel Settings { get; }
 
     public string AppTitle => Loc.Translate("App.Title");
+
+    public string PinTooltip => Loc.Translate("MainWindow.Pin");
+
+    public string MinimizeTooltip => Loc.Translate("MainWindow.Minimize");
+
+    public string MaximizeTooltip => Loc.Translate("MainWindow.Maximize");
+
+    public string CloseTooltip => Loc.Translate("MainWindow.Close");
 
     public object CurrentContent => CurrentPage ?? (SelectedGroupKey == NavGroupKeys.Settings ? Settings : Home);
 
@@ -78,34 +85,7 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     [RelayCommand]
     private void GoHome() => CurrentPage = null;
 
-    private void OpenTool(ToolDescriptor descriptor)
-    {
-        CurrentPage = _pageFactory(descriptor);
-        RememberRecentTool(descriptor.Id);
-    }
-
-    private void RememberRecentTool(string id)
-    {
-        var recents = _settings.Current.RecentToolIds;
-        recents.RemoveAll(existing => existing == id);
-        recents.Insert(0, id);
-        if (recents.Count > MaxRecentTools)
-        {
-            recents.RemoveRange(MaxRecentTools, recents.Count - MaxRecentTools);
-        }
-
-        _settings.Save();
-        RefreshRecentTools();
-    }
-
-    private void RefreshRecentTools()
-    {
-        var descriptors = _settings.Current.RecentToolIds
-            .Select(ToolCatalog.FindById)
-            .Where(d => d is not null)
-            .Select(d => d!);
-        Home.SetRecentTools(descriptors);
-    }
+    private void OpenTool(ToolDescriptor descriptor) => CurrentPage = _pageFactory(descriptor);
 
     partial void OnCurrentPageChanged(object? value)
     {
@@ -115,5 +95,12 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
 
     partial void OnSelectedGroupKeyChanged(string value) => OnPropertyChanged(nameof(CurrentContent));
 
-    protected override void OnLanguageChanged() => OnPropertyChanged(nameof(AppTitle));
+    protected override void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(AppTitle));
+        OnPropertyChanged(nameof(PinTooltip));
+        OnPropertyChanged(nameof(MinimizeTooltip));
+        OnPropertyChanged(nameof(MaximizeTooltip));
+        OnPropertyChanged(nameof(CloseTooltip));
+    }
 }

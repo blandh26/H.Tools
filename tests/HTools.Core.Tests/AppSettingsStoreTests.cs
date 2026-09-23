@@ -8,7 +8,7 @@ public class AppSettingsStoreTests
     [Fact]
     public void Load_ReturnsDefaults_WhenFileMissing()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.json");
+        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.db");
         var store = new AppSettingsStore(path);
 
         var settings = store.Load();
@@ -21,7 +21,7 @@ public class AppSettingsStoreTests
     [Fact]
     public void SaveThenLoad_RoundTripsValues()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.json");
+        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.db");
         var store = new AppSettingsStore(path);
 
         var original = new AppSettings
@@ -29,7 +29,6 @@ public class AppSettingsStoreTests
             Language = "en-US",
             StartWithWindows = true,
             ClipboardSlots = [new ClipboardSlot { Index = 2, Content = "hello", UpdatedAt = new DateTime(2026, 1, 1) }],
-            RecentToolIds = ["clipboard"],
         };
 
         store.Save(original);
@@ -39,7 +38,6 @@ public class AppSettingsStoreTests
         Assert.Equal(original.StartWithWindows, loaded.StartWithWindows);
         Assert.Single(loaded.ClipboardSlots);
         Assert.Equal("hello", loaded.ClipboardSlots[0].Content);
-        Assert.Equal(["clipboard"], loaded.RecentToolIds);
 
         Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
     }
@@ -47,7 +45,7 @@ public class AppSettingsStoreTests
     [Fact]
     public void SaveThenLoad_RoundTripsServerAndMouseEffectSettings()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.json");
+        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.db");
         var store = new AppSettingsStore(path);
 
         var original = new AppSettings();
@@ -77,9 +75,9 @@ public class AppSettingsStoreTests
     [Fact]
     public void Load_ReturnsDefaults_WhenFileIsCorrupt()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.json");
+        var path = Path.Combine(Path.GetTempPath(), $"htools-tests-{Guid.NewGuid():N}", "settings.db");
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, "{ not valid json");
+        File.WriteAllText(path, "this is not a LiteDB file");
 
         var settings = new AppSettingsStore(path).Load();
 

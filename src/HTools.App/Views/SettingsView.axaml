@@ -28,6 +28,11 @@
             <TextBlock Text="{Binding StartWithWindowsHint}" Opacity="0.6" FontSize="12" />
         </StackPanel>
 
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <ToggleSwitch IsChecked="{Binding IsDarkThemeEnabled}" />
+            <TextBlock Text="{Binding DarkThemeLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </StackPanel>
+
         <StackPanel Spacing="8">
             <TextBlock Text="{Binding AboutLabel}" FontWeight="SemiBold" />
             <StackPanel Orientation="Horizontal" Spacing="8">

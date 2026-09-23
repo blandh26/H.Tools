@@ -60,5 +60,32 @@
         <Style Selector="Button.hotkeyBadge.copyBadge">
             <Setter Property="Background" Value="#5B5B5B" />
         </Style>
+
+        <!-- Custom title bar buttons (Pin/Minimize/Maximize/Close) -->
+        <Style Selector="Button.titleBarButton, ToggleButton.titleBarButton">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.titleBarButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemChromeMediumColor}" />
+        </Style>
+        <Style Selector="ToggleButton.titleBarButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemChromeMediumColor}" />
+        </Style>
+        <Style Selector="ToggleButton.titleBarButton:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+        <!-- Close gets the conventional red hover, distinct from the other three. -->
+        <Style Selector="Button.titleBarButton.closeButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E81123" />
+        </Style>
+        <Style Selector="Button.titleBarButton.closeButton:pointerover TextBlock">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
     </Application.Styles>
 </Application>

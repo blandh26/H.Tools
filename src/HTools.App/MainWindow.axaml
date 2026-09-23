@@ -6,47 +6,81 @@
         x:Class="HTools.App.MainWindow"
         x:Name="RootWindow"
         Width="1040" Height="680"
+        MinWidth="640" MinHeight="420"
         Icon="avares://HTools.App/Assets/app.ico"
-        Title="{Binding AppTitle}">
+        Title="{Binding AppTitle}"
+        Topmost="{Binding IsAlwaysOnTop}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="-1">
 
-    <Grid ColumnDefinitions="220,*">
-        <!-- Sidebar -->
-        <Border Grid.Column="0" Background="{DynamicResource SystemChromeLowColor}" Padding="12">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top"
-                           Text="{Binding AppTitle}"
-                           FontSize="20" FontWeight="Bold"
-                           Margin="8,8,8,20" />
-
-                <ItemsControl ItemsSource="{Binding NavGroups}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Classes="navItem"
-                                    Classes.selected="{Binding IsSelected}"
-                                    Command="{Binding #RootWindow.DataContext.SelectGroupCommand}"
-                                    CommandParameter="{Binding}">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock Text="{Binding Icon}" FontSize="16" />
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </DockPanel>
-        </Border>
-
-        <!-- Content -->
-        <DockPanel Grid.Column="1" Margin="24">
-            <StackPanel DockPanel.Dock="Top"
-                        Orientation="Horizontal"
-                        Spacing="10"
-                        Margin="0,0,0,16"
-                        IsVisible="{Binding ShowBackButton}">
-                <Button Content="←" Command="{Binding GoHomeCommand}" />
+    <Grid RowDefinitions="Auto,*">
+        <!-- Custom title bar: replaces the native one so a Pin (always-on-top) button can sit directly
+             left of Minimize, which native OS window chrome has no way to accommodate. -->
+        <Grid Grid.Row="0" x:Name="TitleBar" Height="36"
+              Background="{DynamicResource SystemChromeLowColor}"
+              PointerPressed="OnTitleBarPointerPressed"
+              ColumnDefinitions="Auto,*,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" IsHitTestVisible="False">
+                <TextBlock Text="{Binding AppTitle}" VerticalAlignment="Center" FontSize="12" />
             </StackPanel>
 
-            <ContentControl Content="{Binding CurrentContent}" />
-        </DockPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <ToggleButton x:Name="PinButton" Classes="titleBarButton"
+                              IsChecked="{Binding IsAlwaysOnTop}"
+                              ToolTip.Tip="{Binding PinTooltip}">
+                    <TextBlock Text="📌" FontSize="12" />
+                </ToggleButton>
+                <Button Classes="titleBarButton" Click="OnMinimizeClick" ToolTip.Tip="{Binding MinimizeTooltip}">
+                    <TextBlock Text="─" FontSize="12" />
+                </Button>
+                <Button x:Name="MaximizeButton" Classes="titleBarButton" Click="OnMaximizeRestoreClick" ToolTip.Tip="{Binding MaximizeTooltip}">
+                    <TextBlock x:Name="MaximizeGlyph" Text="🗖" FontSize="12" />
+                </Button>
+                <Button Classes="titleBarButton closeButton" Click="OnCloseClick" ToolTip.Tip="{Binding CloseTooltip}">
+                    <TextBlock Text="✕" FontSize="12" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="220,*">
+            <!-- Sidebar -->
+            <Border Grid.Column="0" Background="{DynamicResource SystemChromeLowColor}" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="{Binding AppTitle}"
+                               FontSize="20" FontWeight="Bold"
+                               Margin="8,8,8,20" />
+
+                    <ItemsControl ItemsSource="{Binding NavGroups}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="navItem"
+                                        Classes.selected="{Binding IsSelected}"
+                                        Command="{Binding #RootWindow.DataContext.SelectGroupCommand}"
+                                        CommandParameter="{Binding}">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding Icon}" FontSize="16" />
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+
+            <!-- Content -->
+            <DockPanel Grid.Column="1" Margin="24">
+                <StackPanel DockPanel.Dock="Top"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            Margin="0,0,0,16"
+                            IsVisible="{Binding ShowBackButton}">
+                    <Button Content="←" Command="{Binding GoHomeCommand}" />
+                </StackPanel>
+
+                <ContentControl Content="{Binding CurrentContent}" />
+            </DockPanel>
+        </Grid>
     </Grid>
 </Window>

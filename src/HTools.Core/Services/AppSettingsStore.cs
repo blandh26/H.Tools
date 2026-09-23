@@ -1,5 +1,5 @@
-using System.Text.Json;
 using HTools.Core.Models;
+using LiteDB;
 
 namespace HTools.Core.Services;
 
@@ -10,38 +10,44 @@ public interface IAppSettingsStore
     void Save(AppSettings settings);
 }
 
+/// <summary>
+/// Persists the single <see cref="AppSettings"/> object graph (language, autostart, theme, clipboard
+/// slots, and every tool's own sub-settings) as one document in a local LiteDB file, rather than as
+/// JSON. LiteDB serializes plain POCOs the same way System.Text.Json did — no attributes needed on
+/// <see cref="AppSettings"/> or any of its nested settings classes — so this is a drop-in replacement
+/// at the storage layer only; nothing above <see cref="IAppSettingsStore"/> changes.
+/// </summary>
 public sealed class AppSettingsStore : IAppSettingsStore
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true
-    };
+    private const string CollectionName = "settings";
 
-    private readonly string _settingsPath;
+    // There's only ever one settings document; a fixed id keeps Load/Save both pointed at it without
+    // needing an Id property bolted onto the otherwise-persistence-agnostic AppSettings model.
+    private const int DocumentId = 1;
+
+    private readonly string _databasePath;
 
     public AppSettingsStore()
         : this(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "HTools",
-            "settings.json"))
+            "settings.db"))
     {
     }
 
-    public AppSettingsStore(string settingsPath)
+    public AppSettingsStore(string databasePath)
     {
-        _settingsPath = settingsPath;
+        _databasePath = databasePath;
     }
 
     public AppSettings Load()
     {
         try
         {
-            if (!File.Exists(_settingsPath))
-            {
-                return new AppSettings();
-            }
-
-            return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_settingsPath)) ?? new AppSettings();
+            Directory.CreateDirectory(Path.GetDirectoryName(_databasePath)!);
+            using var db = new LiteDatabase(_databasePath);
+            var collection = db.GetCollection<AppSettings>(CollectionName);
+            return collection.FindById(DocumentId) ?? new AppSettings();
         }
         catch
         {
@@ -51,7 +57,9 @@ public sealed class AppSettingsStore : IAppSettingsStore
 
     public void Save(AppSettings settings)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
-        File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, JsonOptions));
+        Directory.CreateDirectory(Path.GetDirectoryName(_databasePath)!);
+        using var db = new LiteDatabase(_databasePath);
+        var collection = db.GetCollection<AppSettings>(CollectionName);
+        collection.Upsert(DocumentId, settings);
     }
 }

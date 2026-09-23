@@ -6,9 +6,9 @@ public sealed class AppSettings
 
     public bool StartWithWindows { get; set; }
 
-    public List<ClipboardSlot> ClipboardSlots { get; set; } = [];
+    public bool IsDarkTheme { get; set; } = true;
 
-    public List<string> RecentToolIds { get; set; } = [];
+    public List<ClipboardSlot> ClipboardSlots { get; set; } = [];
 
     public MouseEffectSettings MouseEffect { get; set; } = new();
 

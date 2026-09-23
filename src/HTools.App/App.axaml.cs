@@ -29,6 +29,7 @@ public partial class App : Application
         {
             var settingsContext = new AppSettingsContext(new AppSettingsStore());
             var loc = new LocalizationService(settingsContext.Current.Language);
+            SettingsViewModel.ApplyTheme(settingsContext.Current.IsDarkTheme);
 
             _nativeMessageLoop = new NativeMessageLoop();
             _nativeMessageLoop.Start();
@@ -66,7 +67,7 @@ public partial class App : Application
                 _ => new ComingSoonViewModel(descriptor, loc),
             };
 
-            var mainWindowViewModel = new MainWindowViewModel(loc, settingsContext, settingsViewModel, PageFactory);
+            var mainWindowViewModel = new MainWindowViewModel(loc, settingsViewModel, PageFactory);
             var mainWindow = new MainWindow { DataContext = mainWindowViewModel };
             dialogService.Owner = mainWindow;
 

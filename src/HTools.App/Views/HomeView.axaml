@@ -36,31 +36,6 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-
-            <StackPanel Spacing="8" IsVisible="{Binding HasRecentTools}">
-                <TextBlock Text="{Binding RecentlyUsedLabel}" FontSize="16" FontWeight="SemiBold" />
-                <ItemsControl ItemsSource="{Binding RecentTools}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{DynamicResource SystemChromeLowColor}"
-                                    CornerRadius="8" Padding="12,8" Margin="0,0,0,6">
-                                <Grid ColumnDefinitions="Auto,Auto,*,Auto">
-                                    <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Description}" Opacity="0.6" VerticalAlignment="Center" />
-                                    <ToggleSwitch Grid.Column="3" OnContent="" OffContent=""
-                                                  IsVisible="{Binding QuickToggleTarget, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                                  IsChecked="{Binding QuickToggleTarget.IsEnabled}" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-
-            <TextBlock Text="{Binding NoRecentItemsLabel}"
-                       Opacity="0.5"
-                       IsVisible="{Binding !HasRecentTools}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

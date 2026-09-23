@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Avalonia;
+using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HTools.App.Services;
@@ -25,6 +27,7 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         _suppressPersist = true;
         SelectedLanguage = Languages.FirstOrDefault(l => l.Code == settings.Current.Language) ?? Languages[0];
         IsStartWithWindowsEnabled = WindowsStartup.IsEnabled();
+        IsDarkThemeEnabled = settings.Current.IsDarkTheme;
         _suppressPersist = false;
     }
 
@@ -37,6 +40,8 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
     public string StartWithWindowsLabel => Loc.Translate("Settings.StartWithWindows");
 
     public string StartWithWindowsHint => Loc.Translate("Settings.StartWithWindowsHint");
+
+    public string DarkThemeLabel => Loc.Translate("Settings.DarkTheme");
 
     public string AboutLabel => Loc.Translate("Settings.About");
 
@@ -72,6 +77,9 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
     [ObservableProperty]
     private bool _isStartWithWindowsEnabled;
 
+    [ObservableProperty]
+    private bool _isDarkThemeEnabled;
+
     partial void OnSelectedLanguageChanged(LanguageOption? value)
     {
         if (_suppressPersist || value is null)
@@ -96,12 +104,31 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         _settings.Save();
     }
 
+    partial void OnIsDarkThemeEnabledChanged(bool value)
+    {
+        ApplyTheme(value);
+
+        if (_suppressPersist)
+        {
+            return;
+        }
+
+        _settings.Current.IsDarkTheme = value;
+        _settings.Save();
+    }
+
+    /// <summary>Applies the theme immediately (not just on save) so switching the toggle previews the
+    /// change right away, matching every other setting on this page.</summary>
+    public static void ApplyTheme(bool isDark) =>
+        Application.Current!.RequestedThemeVariant = isDark ? ThemeVariant.Dark : ThemeVariant.Light;
+
     protected override void OnLanguageChanged()
     {
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(LanguageLabel));
         OnPropertyChanged(nameof(StartWithWindowsLabel));
         OnPropertyChanged(nameof(StartWithWindowsHint));
+        OnPropertyChanged(nameof(DarkThemeLabel));
         OnPropertyChanged(nameof(AboutLabel));
         OnPropertyChanged(nameof(AuthorLabel));
         OnPropertyChanged(nameof(WebsiteLabel));

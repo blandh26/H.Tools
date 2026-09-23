@@ -23,38 +23,24 @@ public sealed partial class HomeViewModel : LocalizedViewModelBase
         _openTool = openTool;
         _pageFactory = pageFactory;
         Cards = [];
-        RecentTools = [];
     }
 
     public ObservableCollection<ToolCardViewModel> Cards { get; }
 
-    public ObservableCollection<ToolCardViewModel> RecentTools { get; }
-
-    public bool HasRecentTools => RecentTools.Count > 0;
-
-    public string RecentlyUsedLabel => Loc.Translate("Home.RecentlyUsed");
-
-    public string NoRecentItemsLabel => Loc.Translate("Home.NoRecentItems");
-
+    /// <summary>The Home nav group has no tools of its own assigned to it (it exists purely as a
+    /// landing page), so unlike every other group — which shows only its own tools — Home shows every
+    /// available tool across all groups as a simple overview/dashboard.</summary>
     public void ShowGroup(string groupKey)
     {
         GroupKey = groupKey;
         Cards.Clear();
-        foreach (var descriptor in ToolCatalog.ForGroup(groupKey))
+        var descriptors = groupKey == NavGroupKeys.Home
+            ? ToolCatalog.All.Where(d => d.IsAvailable)
+            : ToolCatalog.ForGroup(groupKey);
+        foreach (var descriptor in descriptors)
         {
             Cards.Add(new ToolCardViewModel(descriptor, Loc, QuickToggleTargetFor(descriptor)));
         }
-    }
-
-    public void SetRecentTools(IEnumerable<ToolDescriptor> descriptors)
-    {
-        RecentTools.Clear();
-        foreach (var descriptor in descriptors)
-        {
-            RecentTools.Add(new ToolCardViewModel(descriptor, Loc, QuickToggleTargetFor(descriptor)));
-        }
-
-        OnPropertyChanged(nameof(HasRecentTools));
     }
 
     private object? QuickToggleTargetFor(ToolDescriptor descriptor) =>
@@ -62,10 +48,4 @@ public sealed partial class HomeViewModel : LocalizedViewModelBase
 
     [RelayCommand]
     private void OpenTool(ToolCardViewModel card) => _openTool(card.Descriptor);
-
-    protected override void OnLanguageChanged()
-    {
-        OnPropertyChanged(nameof(RecentlyUsedLabel));
-        OnPropertyChanged(nameof(NoRecentItemsLabel));
-    }
 }
