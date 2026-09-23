@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="600"
+             x:Class="HTools.App.Views.MockServerView">
+    <DockPanel Margin="4">
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Title}" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+
+        <TabControl>
+            <TabItem Header="{Binding ServerTabLabel}">
+                <StackPanel Spacing="14" Margin="0,12,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{Binding PortLabel}" VerticalAlignment="Center" Width="90" />
+                        <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" Width="140" FormatString="0" />
+                        <Button Content="{Binding StartLabel}" Command="{Binding ToggleServerCommand}" IsVisible="{Binding !IsRunning}" Classes="accent" />
+                        <Button Content="{Binding StopLabel}" Command="{Binding ToggleServerCommand}" IsVisible="{Binding IsRunning}" />
+                        <TextBlock Text="{Binding RunningStatus}" VerticalAlignment="Center" Opacity="0.7" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{Binding ResponseStatusLabel}" VerticalAlignment="Center" Width="90" />
+                        <NumericUpDown Value="{Binding ResponseStatusCode}" Minimum="100" Maximum="599" Width="140" FormatString="0" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding ResponseBodyLabel}" />
+                        <TextBox Text="{Binding ResponseBody}" AcceptsReturn="True" Height="70" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{Binding RequestLogLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button Content="{Binding ClearLogLabel}" Command="{Binding ClearLogCommand}" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding RequestLog}" Height="220">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding ReceivedAt}" Opacity="0.5" FontSize="11" Width="140" />
+                                    <TextBlock Text="{Binding Method}" FontWeight="SemiBold" Width="60" />
+                                    <TextBlock Text="{Binding Path}" />
+                                    <TextBlock Text="{Binding ResponseStatusCode}" Opacity="0.6" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="{Binding ClientTabLabel}">
+                <StackPanel Spacing="12" Margin="0,12,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <ComboBox ItemsSource="{Binding HttpMethods}" SelectedItem="{Binding ClientMethod}" Width="110" />
+                        <TextBox Text="{Binding ClientUrl}" PlaceholderText="{Binding UrlLabel}" Width="420" />
+                        <Button Content="{Binding SendLabel}" Command="{Binding SendCommand}" IsEnabled="{Binding !IsSending}" Classes="accent" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding HeadersLabel}" />
+                        <TextBox Text="{Binding ClientHeaders}" AcceptsReturn="True" Height="60" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding BodyLabel}" />
+                        <TextBox Text="{Binding ClientBody}" AcceptsReturn="True" Height="90" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding ResponseLabel}" FontWeight="SemiBold" />
+                        <Border Background="{DynamicResource SystemChromeLowColor}" CornerRadius="6" Padding="10">
+                            <ScrollViewer Height="200">
+                                <TextBlock Text="{Binding ClientResponseText}" TextWrapping="Wrap" FontFamily="Consolas,monospace" />
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</UserControl>

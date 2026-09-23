@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HTools.App/HTools.App.csproj" />
+    <Project Path="src/HTools.Core/HTools.Core.csproj" />
+    <Project Path="src/HTools.Server/HTools.Server.csproj" />
+    <Project Path="src/HTools.Windows/HTools.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HTools.Core.Tests/HTools.Core.Tests.csproj" />
+  </Folder>
+</Solution>

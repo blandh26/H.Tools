@@ -1,0 +1,16 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="HTools.App.Views.ImagePreviewWindow"
+        Width="420" Height="420"
+        WindowStartupLocation="CenterOwner"
+        Title="Image">
+    <Grid RowDefinitions="*,Auto" Margin="16">
+        <Border Grid.Row="0" Background="{DynamicResource SystemChromeLowColor}" CornerRadius="6">
+            <Image x:Name="PreviewImage" Stretch="Uniform" Margin="8" />
+        </Border>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0" Spacing="8">
+            <Button x:Name="ClearButton" Click="OnClearClick" />
+            <Button x:Name="CloseButton" Click="OnCloseClick" Classes="accent" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="HTools.App.Views.ScreenshotView">
+    <StackPanel Spacing="18" Margin="4" MaxWidth="480">
+        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" />
+        <TextBlock Text="{Binding Hint}" Opacity="0.6" FontSize="12" TextWrapping="Wrap" />
+
+        <Border IsVisible="{Binding HasHotkeyWarning}"
+                Background="#332E1F" BorderBrush="#B8860B" BorderThickness="1"
+                CornerRadius="6" Padding="10,8">
+            <TextBlock Text="{Binding HotkeyWarning}" TextWrapping="Wrap" Foreground="#E0A800" FontSize="12" />
+        </Border>
+
+        <Button Content="{Binding CaptureNowLabel}" Command="{Binding CaptureNowCommand}" Classes="accent" HorizontalAlignment="Left" Padding="18,10" />
+
+        <StackPanel Spacing="6">
+            <TextBlock Text="{Binding HotkeyLabel}" />
+            <Button Content="{Binding HotkeyValueLabel}" Command="{Binding RecordHotkeyCommand}" Classes="hotkeyBadge" HorizontalAlignment="Left" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding StatusMessage}" Opacity="0.8" TextWrapping="Wrap" />
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,83 @@
+using System.Collections.ObjectModel;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using HTools.App.Services;
+using HTools.Core.Services;
+using HTools.Server.Modules;
+
+namespace HTools.App.ViewModels.KestrelServer;
+
+public sealed partial class UploadTabViewModel : ObservableObject, IAsyncDisposable
+{
+    private readonly FileUploadServerModule _module = new();
+    private readonly AppSettingsContext _settings;
+    private readonly ILocalizationService _loc;
+    private bool _suppressPersist;
+
+    public UploadTabViewModel(AppSettingsContext settings, ILocalizationService loc)
+    {
+        _settings = settings;
+        _loc = loc;
+        _module.FileReceived += (_, path) => Dispatcher.UIThread.Post(() => ReceivedFiles.Insert(0, path));
+
+        var saved = settings.Current.KestrelServer.Upload;
+        _suppressPersist = true;
+        Port = saved.Port;
+        UploadFolder = string.IsNullOrEmpty(saved.UploadFolder)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            : saved.UploadFolder;
+        _suppressPersist = false;
+    }
+
+    public ObservableCollection<string> ReceivedFiles { get; } = [];
+
+    [ObservableProperty]
+    private int _port;
+
+    [ObservableProperty]
+    private string _uploadFolder = string.Empty;
+
+    [ObservableProperty]
+    private bool _isRunning;
+
+    [ObservableProperty]
+    private string? _errorMessage;
+
+    [RelayCommand]
+    private async Task ToggleAsync()
+    {
+        if (IsRunning)
+        {
+            await _module.StopAsync();
+            IsRunning = false;
+            return;
+        }
+
+        _module.UploadFolder = UploadFolder;
+        _module.PageTitle = _loc.Translate("KestrelServer.UploadPageTitle");
+        _module.UploadButtonText = _loc.Translate("KestrelServer.UploadButton");
+        _module.SuccessText = _loc.Translate("KestrelServer.UploadSuccess");
+        IsRunning = await _module.StartAsync(Port);
+        ErrorMessage = IsRunning ? null : _module.LastError;
+    }
+
+    partial void OnPortChanged(int value) => Persist();
+
+    partial void OnUploadFolderChanged(string value) => Persist();
+
+    private void Persist()
+    {
+        if (_suppressPersist)
+        {
+            return;
+        }
+
+        var s = _settings.Current.KestrelServer.Upload;
+        s.Port = Port;
+        s.UploadFolder = UploadFolder;
+        _settings.Save();
+    }
+
+    public async ValueTask DisposeAsync() => await _module.DisposeAsync();
+}

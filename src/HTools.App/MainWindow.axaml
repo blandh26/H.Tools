@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1040" d:DesignHeight="680"
+        x:Class="HTools.App.MainWindow"
+        x:Name="RootWindow"
+        Width="1040" Height="680"
+        Icon="avares://HTools.App/Assets/app.ico"
+        Title="{Binding AppTitle}">
+
+    <Grid ColumnDefinitions="220,*">
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource SystemChromeLowColor}" Padding="12">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top"
+                           Text="{Binding AppTitle}"
+                           FontSize="20" FontWeight="Bold"
+                           Margin="8,8,8,20" />
+
+                <ItemsControl ItemsSource="{Binding NavGroups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Classes="navItem"
+                                    Classes.selected="{Binding IsSelected}"
+                                    Command="{Binding #RootWindow.DataContext.SelectGroupCommand}"
+                                    CommandParameter="{Binding}">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding Icon}" FontSize="16" />
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </Border>
+
+        <!-- Content -->
+        <DockPanel Grid.Column="1" Margin="24">
+            <StackPanel DockPanel.Dock="Top"
+                        Orientation="Horizontal"
+                        Spacing="10"
+                        Margin="0,0,0,16"
+                        IsVisible="{Binding ShowBackButton}">
+                <Button Content="←" Command="{Binding GoHomeCommand}" />
+            </StackPanel>
+
+            <ContentControl Content="{Binding CurrentContent}" />
+        </DockPanel>
+    </Grid>
+</Window>

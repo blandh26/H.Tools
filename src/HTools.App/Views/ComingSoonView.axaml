@@ -1,0 +1,12 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="HTools.App.Views.ComingSoonView">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+        <TextBlock Text="{Binding Icon}" FontSize="48" HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding Message}" Opacity="0.6" HorizontalAlignment="Center" />
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="HTools.App.Views.MouseEffectView">
+    <StackPanel Spacing="18" Margin="4" MaxWidth="480">
+        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" />
+        <TextBlock Text="{Binding Hint}" Opacity="0.6" FontSize="12" />
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <ToggleSwitch IsChecked="{Binding IsEnabled}" />
+            <TextBlock Text="{Binding EnableLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding GhostCountLabel}" Width="120" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding GhostCount}" Width="30" VerticalAlignment="Center" />
+            </StackPanel>
+            <Slider Minimum="5" Maximum="50" Value="{Binding GhostCount}" TickFrequency="5" IsSnapToTickEnabled="True" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding DurationLabel}" Width="120" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding DurationMs}" Width="50" VerticalAlignment="Center" />
+            </StackPanel>
+            <Slider Minimum="300" Maximum="2000" Value="{Binding DurationMs}" TickFrequency="100" IsSnapToTickEnabled="True" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <TextBlock Text="{Binding ShapeLabel}" />
+            <ComboBox ItemsSource="{Binding Shapes}" SelectedItem="{Binding SelectedShape}" HorizontalAlignment="Left" MinWidth="180">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <TextBlock Text="{Binding ColorLabel}" />
+            <ComboBox ItemsSource="{Binding Colors}" SelectedItem="{Binding SelectedColor}" HorizontalAlignment="Left" MinWidth="180">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Ellipse Width="14" Height="14" Fill="{Binding Swatch}" />
+                            <TextBlock Text="{Binding DisplayName}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <Button Content="{Binding TestPulseLabel}" Command="{Binding TestPulseCommand}" Classes="accent" HorizontalAlignment="Left" />
+    </StackPanel>
+</UserControl>

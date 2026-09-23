@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="560"
+             x:Class="HTools.App.Views.ClipboardView"
+             x:Name="Root">
+    <DockPanel Margin="4">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,4" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+            <Button Content="{Binding NewLabel}" Command="{Binding NewEntryCommand}" />
+        </StackPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding HotkeyHint}" Opacity="0.6" Margin="0,4,0,8" />
+
+        <Border DockPanel.Dock="Top"
+                IsVisible="{Binding HasHotkeyWarning}"
+                Background="#332E1F" BorderBrush="#B8860B" BorderThickness="1"
+                CornerRadius="6" Padding="10,8" Margin="0,0,0,12">
+            <TextBlock Text="{Binding HotkeyWarning}" TextWrapping="Wrap" Foreground="#E0A800" FontSize="12" />
+        </Border>
+
+        <ListBox x:Name="SlotsList" ItemsSource="{Binding Slots}" SelectionMode="Single" DoubleTapped="OnSlotDoubleTapped">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="10,6">
+                        <Grid ColumnDefinitions="90,90,40,*,150">
+                            <Button Grid.Column="0" Classes="hotkeyBadge"
+                                    Content="{Binding HotkeyLabel}"
+                                    Command="{Binding #Root.DataContext.RecordPasteHotkeyCommand}"
+                                    CommandParameter="{Binding}"
+                                    ToolTip.Tip="{Binding #Root.DataContext.PasteHotkeyTooltip}" />
+                            <Button Grid.Column="1" Classes="hotkeyBadge copyBadge"
+                                    Content="{Binding CopyHotkeyLabel}"
+                                    Command="{Binding #Root.DataContext.RecordCopyHotkeyCommand}"
+                                    CommandParameter="{Binding}"
+                                    ToolTip.Tip="{Binding #Root.DataContext.CopyHotkeyTooltip}" />
+                            <Image Grid.Column="2"
+                                   Source="{Binding ImageSource}"
+                                   IsVisible="{Binding IsImage}"
+                                   Width="32" Height="32" Stretch="Uniform"
+                                   HorizontalAlignment="Left" Margin="8,0,0,0" />
+                            <TextBlock Grid.Column="3"
+                                       Text="{Binding Content}"
+                                       TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center"
+                                       Margin="14,0" />
+                            <TextBlock Grid.Column="4"
+                                       Text="{Binding UpdatedAtText}"
+                                       Opacity="0.5" FontSize="11"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>
