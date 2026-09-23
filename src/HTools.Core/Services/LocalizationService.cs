@@ -16,7 +16,7 @@ public sealed class LocalizationService : ILocalizationService
 
         SupportedLanguages =
         [
-            new LanguageOption("zh-CN", "中文"),
+            new LanguageOption("zh-CN", "简体中文"),
             new LanguageOption("en-US", "English"),
             new LanguageOption("ja-JP", "日本語"),
             new LanguageOption("ko-KR", "한국어"),

@@ -19,9 +19,14 @@ public partial class HomeView : UserControl
 
     private async void OnAddToolClick(object? sender, RoutedEventArgs e)
     {
-        var dialog = new CustomToolDialog();
+        if (DataContext is not HomeViewModel viewModel)
+        {
+            return;
+        }
+
+        var dialog = new CustomToolDialog(viewModel.Localization);
         var result = await dialog.ShowDialog<CustomToolItem?>(GetOwner());
-        if (result is not null && DataContext is HomeViewModel viewModel)
+        if (result is not null)
         {
             viewModel.AddCustomTool(result);
         }
@@ -29,7 +34,8 @@ public partial class HomeView : UserControl
 
     private void OnToolContextMenuOpened(object? sender, RoutedEventArgs e)
     {
-        if (sender is not ContextMenu menu || menu.PlacementTarget?.DataContext is not ToolCardViewModel card)
+        if (sender is not ContextMenu menu || menu.PlacementTarget?.DataContext is not ToolCardViewModel card
+            || DataContext is not HomeViewModel viewModel)
         {
             return;
         }
@@ -42,7 +48,10 @@ public partial class HomeView : UserControl
         var entries = menu.Items.OfType<MenuItem>().ToArray();
         if (entries.Length >= 3)
         {
-            entries[0].Header = card.IsPinned ? "取消置顶" : "置顶";
+            // Assigned on every open (not bound) so they always reflect the current language.
+            entries[0].Header = card.IsPinned ? viewModel.UnpinLabel : viewModel.PinToTopLabel;
+            entries[1].Header = viewModel.EditLabel;
+            entries[2].Header = viewModel.DeleteLabel;
             entries[1].IsVisible = card.IsCustom;
             entries[2].IsVisible = card.IsCustom;
             if (menu.Items.OfType<Separator>().FirstOrDefault() is { } separator)
@@ -67,7 +76,7 @@ public partial class HomeView : UserControl
             return;
         }
 
-        var dialog = new CustomToolDialog(tool);
+        var dialog = new CustomToolDialog(viewModel.Localization, tool);
         var result = await dialog.ShowDialog<CustomToolItem?>(GetOwner());
         if (result is not null)
         {
@@ -82,7 +91,7 @@ public partial class HomeView : UserControl
             return;
         }
 
-        var dialog = new ConfirmToolDeleteDialog(tool.Name);
+        var dialog = new ConfirmToolDeleteDialog(viewModel.Localization, tool.Name);
         if (await dialog.ShowDialog<bool>(GetOwner()))
         {
             viewModel.DeleteCustomTool(tool.Id);

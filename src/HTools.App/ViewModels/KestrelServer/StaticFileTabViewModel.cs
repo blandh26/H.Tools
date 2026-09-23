@@ -39,6 +39,9 @@ public sealed partial class StaticFileTabViewModel : LocalizedViewModelBase, IAs
 
     public string RootFolderLabel => Loc.Translate("KestrelServer.RootFolder");
 
+    /// <summary>"选择文件夹…"按钮文字，同时用作文件夹选择器的对话框标题。</summary>
+    public string ChooseFolderLabel => Loc.Translate("KestrelServer.ChooseFolder");
+
     public string AccessUrl => $"http://localhost:{Port}/";
 
     [ObservableProperty]
@@ -96,6 +99,7 @@ public sealed partial class StaticFileTabViewModel : LocalizedViewModelBase, IAs
         OnPropertyChanged(nameof(StartLabel));
         OnPropertyChanged(nameof(StopLabel));
         OnPropertyChanged(nameof(RootFolderLabel));
+        OnPropertyChanged(nameof(ChooseFolderLabel));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

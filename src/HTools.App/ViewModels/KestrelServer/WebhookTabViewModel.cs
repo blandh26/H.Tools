@@ -42,6 +42,11 @@ public sealed partial class WebhookTabViewModel : LocalizedViewModelBase, IAsync
 
     public string ClearLogLabel => Loc.Translate("MockServer.ClearLog");
 
+    /// <summary>"接收地址"——第三方服务把 Webhook 推送到这里。</summary>
+    public string ReceiveUrlLabel => Loc.Translate("KestrelServer.ReceiveUrl");
+
+    public string HintText => Loc.Translate("KestrelServer.WebhookHint");
+
     public string AccessUrl => $"http://localhost:{Port}/";
 
     [ObservableProperty]
@@ -90,6 +95,8 @@ public sealed partial class WebhookTabViewModel : LocalizedViewModelBase, IAsync
         OnPropertyChanged(nameof(StopLabel));
         OnPropertyChanged(nameof(RequestLogLabel));
         OnPropertyChanged(nameof(ClearLogLabel));
+        OnPropertyChanged(nameof(ReceiveUrlLabel));
+        OnPropertyChanged(nameof(HintText));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

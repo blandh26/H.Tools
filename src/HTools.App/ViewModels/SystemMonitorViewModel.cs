@@ -155,8 +155,25 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         while (queue.Count > 60) queue.Dequeue();
     }
 
+    /// <summary>把服务层返回的原始硬件行按当前语言格式化成展示行；切换语言时会再次调用。</summary>
     private void RefreshHardwareInventory() => HardwareInventory = _hardwareRows.Select(row =>
-        new HardwareInfoDisplayRow(Loc.Translate($"SystemMonitor.Category.{row.Category}"), row.Details)).ToArray();
+        new HardwareInfoDisplayRow(Loc.Translate($"SystemMonitor.Category.{row.Category}"), FormatDetails(row))).ToArray();
+
+    private string FormatDetails(HardwareInfoRow row)
+    {
+        var template = row.FormatIsLocalizationKey ? Loc.Translate(row.Format) : row.Format;
+        // 取不到的值统一显示本地化的"不可用"
+        var args = row.Args.Select(a => (object)(a ?? UnavailableText)).ToArray();
+        try
+        {
+            return string.Format(template, args);
+        }
+        catch (FormatException)
+        {
+            // 语言文件模板写错时兜底，至少把数据显示出来
+            return string.Join(" · ", args);
+        }
+    }
 
     private string TemperatureText(params string[] hardwareHints)
     {
@@ -189,6 +206,11 @@ public sealed partial class SystemMonitorViewModel : LocalizedViewModelBase, IDi
         RefreshHardwareInventory();
         OnPropertyChanged(nameof(UnavailableText));
         OnPropertyChanged(nameof(UpdatedAtText));
+        // 温度文字在无传感器时显示"不可用"，组合显示里还带着标签，都要跟着语言刷新
+        OnPropertyChanged(nameof(CpuTemperatureText));
+        OnPropertyChanged(nameof(GpuTemperatureText));
+        OnPropertyChanged(nameof(CpuTemperatureDisplay));
+        OnPropertyChanged(nameof(GpuTemperatureDisplay));
     }
 
     public void Dispose()

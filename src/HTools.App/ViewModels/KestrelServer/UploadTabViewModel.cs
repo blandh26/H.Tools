@@ -45,6 +45,25 @@ public sealed partial class UploadTabViewModel : LocalizedViewModelBase, IAsyncD
 
     public string ReceivedFilesLabel => Loc.Translate("KestrelServer.ReceivedFiles");
 
+    // ── "服务配置 / 访问与使用" 两个子页签上的静态文字 ──
+
+    public string ConfigTabLabel => Loc.Translate("KestrelServer.UploadConfigTab");
+
+    public string UsageTabLabel => Loc.Translate("KestrelServer.UploadUsageTab");
+
+    public string ChooseFolderLabel => Loc.Translate("KestrelServer.ChooseFolder");
+
+    public string AccessUrlLabel => Loc.Translate("KestrelServer.AccessUrl");
+
+    public string HowToLabel => Loc.Translate("KestrelServer.UploadHowTo");
+
+    public string HowToText => Loc.Translate("KestrelServer.UploadHowToText");
+
+    public string CommandLineLabel => Loc.Translate("KestrelServer.UploadCommandLine");
+
+    /// <summary>curl 用法 + 远程访问时替换 localhost / 放行防火墙的提示。</summary>
+    public string RemoteHintText => Loc.Translate("KestrelServer.UploadRemoteHint");
+
     public string AccessUrl => $"http://localhost:{Port}/";
 
     public string UploadExample => $"curl -F \"file=@C:\\path\\to\\file.zip\" http://localhost:{Port}/";
@@ -109,6 +128,14 @@ public sealed partial class UploadTabViewModel : LocalizedViewModelBase, IAsyncD
         OnPropertyChanged(nameof(StopLabel));
         OnPropertyChanged(nameof(UploadFolderLabel));
         OnPropertyChanged(nameof(ReceivedFilesLabel));
+        OnPropertyChanged(nameof(ConfigTabLabel));
+        OnPropertyChanged(nameof(UsageTabLabel));
+        OnPropertyChanged(nameof(ChooseFolderLabel));
+        OnPropertyChanged(nameof(AccessUrlLabel));
+        OnPropertyChanged(nameof(HowToLabel));
+        OnPropertyChanged(nameof(HowToText));
+        OnPropertyChanged(nameof(CommandLineLabel));
+        OnPropertyChanged(nameof(RemoteHintText));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

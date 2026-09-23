@@ -60,7 +60,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var result = await new CustomToolDialog().ShowDialog<CustomToolItem?>(this);
+        var result = await new CustomToolDialog(viewModel.Home.Localization).ShowDialog<CustomToolItem?>(this);
         if (result is not null)
         {
             viewModel.Home.AddCustomTool(result);

@@ -49,6 +49,8 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
 
     public string SettingsTooltip => Loc.Translate("Settings.Title");
 
+    public string AddToolTooltip => Loc.Translate("CustomTool.AddTitle");
+
     public object CurrentContent => CurrentPage ?? Home;
 
     public bool ShowBackButton => CurrentPage is not null;
@@ -77,5 +79,6 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
         OnPropertyChanged(nameof(MaximizeTooltip));
         OnPropertyChanged(nameof(CloseTooltip));
         OnPropertyChanged(nameof(SettingsTooltip));
+        OnPropertyChanged(nameof(AddToolTooltip));
     }
 }

@@ -55,43 +55,88 @@ public sealed class SystemMonitorService : IDisposable
         return new LiveSystemSnapshot(cpu, memory.TotalBytes, memory.UsedBytes, download, upload, sensors);
     }
 
+    /// <summary>
+    /// 读取硬件清单。这里只负责"取数"，不拼最终展示文字：每一行返回一个格式模板 + 原始参数，
+    /// 由 <see cref="HTools.App.ViewModels.SystemMonitorViewModel"/> 在 UI 线程按当前语言格式化。
+    /// 这样 "核 / 线程"、"序列号"、"驱动"、"可用 / 共" 这类词可以随语言切换即时刷新，
+    /// 而取不到的值（参数为 null）会统一显示为本地化的"不可用"。
+    /// </summary>
     public IReadOnlyList<HardwareInfoRow> ReadHardwareInventory()
     {
         var items = new List<HardwareInfoRow>
         {
-            new("System", $"{Environment.MachineName} · {Environment.OSVersion.VersionString} · {RuntimeInformation.OSArchitecture}"),
+            HardwareInfoRow.Plain("System", Environment.MachineName, Environment.OSVersion.VersionString, RuntimeInformation.OSArchitecture.ToString()),
         };
 
+        // 含有自然语言词汇的行 → 使用语言文件中的 SystemMonitor.Detail.* 模板
         AddWmi(items, "Processor", "SELECT Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed FROM Win32_Processor",
-            o => $"{o["Name"]} · {o["NumberOfCores"]} cores / {o["NumberOfLogicalProcessors"]} threads · {o["MaxClockSpeed"]} MHz");
+            o => HardwareInfoRow.Localized("Processor", "SystemMonitor.Detail.Processor",
+                Str(o, "Name"), Str(o, "NumberOfCores"), Str(o, "NumberOfLogicalProcessors"), Str(o, "MaxClockSpeed")));
         AddWmi(items, "Motherboard", "SELECT Manufacturer, Product, SerialNumber FROM Win32_BaseBoard",
-            o => $"{o["Manufacturer"]} {o["Product"]} · S/N {o["SerialNumber"]}");
-        AddWmi(items, "Bios", "SELECT Manufacturer, SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS",
-            o => $"{o["Manufacturer"]} {o["SMBIOSBIOSVersion"]} · {o["ReleaseDate"]}");
+            o => HardwareInfoRow.Localized("Motherboard", "SystemMonitor.Detail.Motherboard",
+                Str(o, "Manufacturer"), Str(o, "Product"), Str(o, "SerialNumber")));
         AddWmi(items, "Graphics", "SELECT Name, AdapterRAM, DriverVersion FROM Win32_VideoController",
-            o => $"{o["Name"]} · {FormatBytes(ToUInt64(o["AdapterRAM"]))} · Driver {o["DriverVersion"]}");
+            o => HardwareInfoRow.Localized("Graphics", "SystemMonitor.Detail.Graphics",
+                Str(o, "Name"), FormatBytes(ToUInt64(o["AdapterRAM"])), Str(o, "DriverVersion")));
+
+        // 其余行只是"值 · 值 · 值"（单位 MHz / GB / Mbps 与语言无关），直接用 · 连接
+        AddWmi(items, "Bios", "SELECT Manufacturer, SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS",
+            o => HardwareInfoRow.Plain("Bios", JoinSpace(Str(o, "Manufacturer"), Str(o, "SMBIOSBIOSVersion")), FormatWmiDate(o["ReleaseDate"])));
         AddWmi(items, "Memory", "SELECT Manufacturer, Capacity, Speed, ConfiguredClockSpeed FROM Win32_PhysicalMemory",
-            o => $"{o["Manufacturer"]} · {FormatBytes(ToUInt64(o["Capacity"]))} · {o["Speed"]} MHz");
+            o => HardwareInfoRow.Plain("Memory", Str(o, "Manufacturer"), FormatBytes(ToUInt64(o["Capacity"])), WithUnit(Str(o, "Speed"), "MHz")));
         AddWmi(items, "Storage", "SELECT Model, MediaType, Size, InterfaceType FROM Win32_DiskDrive",
-            o => $"{o["Model"]} · {FormatBytes(ToUInt64(o["Size"]))} · {o["InterfaceType"]}");
+            o => HardwareInfoRow.Plain("Storage", Str(o, "Model"), FormatBytes(ToUInt64(o["Size"])), Str(o, "InterfaceType")));
         AddWmi(items, "Audio", "SELECT Name, Manufacturer, Status FROM Win32_SoundDevice",
-            o => $"{o["Name"]} · {o["Manufacturer"]} · {o["Status"]}");
+            o => HardwareInfoRow.Plain("Audio", Str(o, "Name"), Str(o, "Manufacturer"), Str(o, "Status")));
         AddWmi(items, "Display", "SELECT Name, MonitorManufacturer, ScreenWidth, ScreenHeight, Status FROM Win32_DesktopMonitor",
-            o => $"{o["Name"]} · {o["MonitorManufacturer"]} · {o["ScreenWidth"]} × {o["ScreenHeight"]} · {o["Status"]}");
+            o => HardwareInfoRow.Plain("Display", Str(o, "Name"), Str(o, "MonitorManufacturer"),
+                Str(o, "ScreenWidth") is { } w && Str(o, "ScreenHeight") is { } h ? $"{w} × {h}" : null, Str(o, "Status")));
         AddWmi(items, "Battery", "SELECT Name, Manufacturer, Status FROM Win32_Battery",
-            o => $"{o["Name"]} · {o["Manufacturer"]} · {o["Status"]}");
+            o => HardwareInfoRow.Plain("Battery", Str(o, "Name"), Str(o, "Manufacturer"), Str(o, "Status")));
         AddWmi(items, "Network", "SELECT NetConnectionID, Name, MACAddress, Speed FROM Win32_NetworkAdapter WHERE PhysicalAdapter = TRUE",
-            o => $"{o["NetConnectionID"]} · {o["Name"]} · {o["MACAddress"]} · {FormatBits(ToUInt64(o["Speed"]))}");
+            o => HardwareInfoRow.Plain("Network", Str(o, "NetConnectionID"), Str(o, "Name"), Str(o, "MACAddress"), FormatBits(ToUInt64(o["Speed"]))));
 
         try
         {
             var drives = DriveInfo.GetDrives().Where(d => d.IsReady).Select(d =>
-                new HardwareInfoRow("Volumes", $"{d.Name} · {d.DriveFormat} · {FormatBytes((ulong)d.AvailableFreeSpace)} free / {FormatBytes((ulong)d.TotalSize)}"));
+                HardwareInfoRow.Localized("Volumes", "SystemMonitor.Detail.Volume",
+                    d.Name, d.DriveFormat, FormatBytes((ulong)d.AvailableFreeSpace), FormatBytes((ulong)d.TotalSize)));
             items.AddRange(drives);
         }
         catch { }
 
         return items;
+    }
+
+    /// <summary>取 WMI 属性的字符串值；null / 空白统一视为"取不到"(返回 null)，交给 UI 显示为"不可用"。</summary>
+    private static string? Str(ManagementBaseObject o, string property)
+    {
+        try
+        {
+            var text = o[property]?.ToString()?.Trim();
+            return string.IsNullOrEmpty(text) ? null : text;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>"厂商 版本" 这种空格连接的组合；两边都没有时返回 null。</summary>
+    private static string? JoinSpace(params string?[] parts)
+    {
+        var text = string.Join(' ', parts.Where(p => p is not null));
+        return text.Length == 0 ? null : text;
+    }
+
+    private static string? WithUnit(string? value, string unit) => value is null ? null : $"{value} {unit}";
+
+    /// <summary>WMI 的日期是 "20230101000000.000000+000" 这种 CIM 格式，转成 yyyy-MM-dd 便于阅读。</summary>
+    private static string? FormatWmiDate(object? value)
+    {
+        if (value?.ToString() is not { Length: > 0 } text) return null;
+        try { return ManagementDateTimeConverter.ToDateTime(text).ToString("yyyy-MM-dd"); }
+        catch { return text; }
     }
 
     private double ReadCpuUsage()
@@ -196,7 +241,7 @@ public sealed class SystemMonitorService : IDisposable
         }
     }
 
-    private static void AddWmi(List<HardwareInfoRow> output, string category, string query, Func<ManagementBaseObject, string> format)
+    private static void AddWmi(List<HardwareInfoRow> output, string category, string query, Func<ManagementBaseObject, HardwareInfoRow> create)
     {
         try
         {
@@ -204,7 +249,7 @@ public sealed class SystemMonitorService : IDisposable
             using var results = searcher.Get();
             foreach (ManagementBaseObject item in results)
             {
-                using (item) output.Add(new HardwareInfoRow(category, format(item)));
+                using (item) output.Add(create(item));
             }
         }
         catch { }
@@ -218,9 +263,10 @@ public sealed class SystemMonitorService : IDisposable
     private static ulong ToUInt64(System.Runtime.InteropServices.ComTypes.FILETIME value) =>
         ((ulong)(uint)value.dwHighDateTime << 32) | (uint)value.dwLowDateTime;
 
-    private static string FormatBytes(ulong bytes) => bytes == 0 ? "n/a" : $"{bytes / 1024d / 1024 / 1024:0.##} GB";
+    // 0 表示 WMI 没给出数值 → 返回 null，UI 端显示本地化的"不可用"（以前是写死的英文 "n/a"）
+    private static string? FormatBytes(ulong bytes) => bytes == 0 ? null : $"{bytes / 1024d / 1024 / 1024:0.##} GB";
 
-    private static string FormatBits(ulong bitsPerSecond) => bitsPerSecond == 0 ? "speed n/a" : $"{bitsPerSecond / 1_000_000d:0.#} Mbps";
+    private static string? FormatBits(ulong bitsPerSecond) => bitsPerSecond == 0 ? null : $"{bitsPerSecond / 1_000_000d:0.#} Mbps";
 
     public void Dispose()
     {
@@ -273,4 +319,18 @@ public sealed record LiveSystemSnapshot(double CpuPercent, ulong MemoryTotalByte
 
 public sealed record HardwareSensor(string Hardware, string HardwareType, string Name, string SensorType, string Value);
 
-public sealed record HardwareInfoRow(string Category, string Details);
+/// <summary>
+/// 一行硬件信息的"原始数据"。<paramref name="Format"/> 为 <c>string.Format</c> 模板：
+/// 当 <paramref name="FormatIsLocalizationKey"/> 为 true 时它是语言文件的键（如 SystemMonitor.Detail.Processor），
+/// 否则就是与语言无关的字面模板（"{0} · {1} · …"）。<paramref name="Args"/> 中的 null 表示该值取不到。
+/// </summary>
+public sealed record HardwareInfoRow(string Category, string Format, IReadOnlyList<string?> Args, bool FormatIsLocalizationKey)
+{
+    /// <summary>使用语言文件模板的行。</summary>
+    public static HardwareInfoRow Localized(string category, string formatKey, params string?[] args) =>
+        new(category, formatKey, args, true);
+
+    /// <summary>纯值行：各参数以 " · " 连接。</summary>
+    public static HardwareInfoRow Plain(string category, params string?[] args) =>
+        new(category, string.Join(" · ", args.Select((_, i) => $"{{{i}}}")), args, false);
+}

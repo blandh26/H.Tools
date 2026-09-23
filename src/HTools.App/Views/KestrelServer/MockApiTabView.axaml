@@ -16,9 +16,9 @@
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
-            <TextBlock Text="服务地址" VerticalAlignment="Center" Width="90" />
+            <TextBlock Text="{Binding ServiceUrlLabel}" VerticalAlignment="Center" Width="90" />
             <TextBox Text="{Binding AccessUrl}" IsReadOnly="True" Width="320" />
-            <TextBlock Text="规则按 HTTP 方法和路径精确匹配；未匹配请求返回 404。" VerticalAlignment="Center" Opacity="0.65" />
+            <TextBlock Text="{Binding HintText}" VerticalAlignment="Center" Opacity="0.65" />
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,6">
@@ -32,11 +32,11 @@
                 <DataTemplate>
                     <Border Background="{DynamicResource SystemChromeLowColor}" CornerRadius="6" Padding="8" Margin="0,0,0,6">
                         <Grid ColumnDefinitions="90,*,100,180,2*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="6">
-                            <TextBox Text="{Binding Method}" PlaceholderText="Method" />
+                            <TextBox Text="{Binding Method}" PlaceholderText="{Binding #Root.DataContext.MethodPlaceholder}" />
                             <TextBox Grid.Column="1" Text="{Binding Path}" PlaceholderText="/path" />
                             <NumericUpDown Grid.Column="2" Value="{Binding StatusCode}" FormatString="0" Minimum="100" Maximum="599" />
                             <TextBox Grid.Column="3" Text="{Binding ContentType}" PlaceholderText="Content-Type" />
-                            <TextBox Grid.Column="4" Grid.ColumnSpan="2" Text="{Binding Body}" PlaceholderText="响应内容" />
+                            <TextBox Grid.Column="4" Grid.ColumnSpan="2" Text="{Binding Body}" PlaceholderText="{Binding #Root.DataContext.BodyPlaceholder}" />
                             <Button Grid.Row="1" Grid.Column="5" Content="{Binding #Root.DataContext.RemoveRuleLabel}"
                                     Command="{Binding #Root.DataContext.RemoveRuleCommand}"
                                     CommandParameter="{Binding}" />

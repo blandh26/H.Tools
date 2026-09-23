@@ -15,7 +15,7 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="10">
-            <TextBlock Text="访问地址" VerticalAlignment="Center" Width="90" />
+            <TextBlock Text="{Binding AccessUrlLabel}" VerticalAlignment="Center" Width="90" />
             <TextBox Text="{Binding AccessUrl}" IsReadOnly="True" Width="320" />
             <TextBlock Text="{Binding RunningStatus}" VerticalAlignment="Center" Opacity="0.7" />
         </StackPanel>

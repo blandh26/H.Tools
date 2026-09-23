@@ -53,10 +53,14 @@ public static class SvgRasterizer
 
     /// <summary>Renders <paramref name="svgMarkup"/> to a square <paramref name="size"/>-pixel PNG with
     /// an alpha channel.</summary>
-    public static byte[] RenderPng(string svgMarkup, int size)
+    public static byte[] RenderPng(string svgMarkup, int size) => RenderPng(svgMarkup, size, size);
+
+    /// <summary>Renders <paramref name="svgMarkup"/> to a <paramref name="width"/>×<paramref name="height"/>
+    /// PNG with an alpha channel — for non-square artwork such as the 3:2 language flags.</summary>
+    public static byte[] RenderPng(string svgMarkup, int width, int height)
     {
         var document = SvgDocument.FromSvg<SvgDocument>(svgMarkup);
-        using var bitmap = document.Draw(size, size);
+        using var bitmap = document.Draw(width, height);
         using var stream = new MemoryStream();
         bitmap.Save(stream, ImageFormat.Png);
         return stream.ToArray();

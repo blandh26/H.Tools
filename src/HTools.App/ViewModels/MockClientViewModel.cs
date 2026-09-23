@@ -34,6 +34,14 @@ public sealed partial class MockClientViewModel : LocalizedViewModelBase
 
     public string ResponseLabel => Loc.Translate("MockServer.Response");
 
+    public string HistoryLabel => Loc.Translate("MockClient.History");
+
+    public string ClearHistoryLabel => Loc.Translate("Common.Clear");
+
+    public string ParamsHeadersTabLabel => Loc.Translate("MockClient.ParamsHeadersTab");
+
+    public string FooterText => Loc.Translate("MockClient.Footer");
+
     [ObservableProperty]
     private string _clientMethod = "GET";
 
@@ -108,6 +116,10 @@ public sealed partial class MockClientViewModel : LocalizedViewModelBase
         OnPropertyChanged(nameof(BodyLabel));
         OnPropertyChanged(nameof(SendLabel));
         OnPropertyChanged(nameof(ResponseLabel));
+        OnPropertyChanged(nameof(HistoryLabel));
+        OnPropertyChanged(nameof(ClearHistoryLabel));
+        OnPropertyChanged(nameof(ParamsHeadersTabLabel));
+        OnPropertyChanged(nameof(FooterText));
     }
 }
 

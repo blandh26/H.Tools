@@ -37,10 +37,12 @@
                                     CommandParameter="{Binding}">
                                 <Button.ContextMenu>
                                     <ContextMenu Opened="OnToolContextMenuOpened">
-                                        <MenuItem Header="置顶 / 取消置顶" Click="OnTogglePinClick" />
+                                        <!-- Headers are assigned in OnToolContextMenuOpened: the menu is a
+                                             popup outside this view's name scope, so #Root bindings don't reach it. -->
+                                        <MenuItem Click="OnTogglePinClick" />
                                         <Separator />
-                                        <MenuItem Header="修改" Click="OnEditToolClick" />
-                                        <MenuItem Header="删除…" Click="OnDeleteToolClick" />
+                                        <MenuItem Click="OnEditToolClick" />
+                                        <MenuItem Click="OnDeleteToolClick" />
                                     </ContextMenu>
                                 </Button.ContextMenu>
                                 <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -56,10 +58,10 @@
                                 </StackPanel>
                             </Button>
                             <Border Classes="toolCardDragHandle" PointerPressed="OnDragHandlePointerPressed"
-                                    ToolTip.Tip="按住拖动排序">
+                                    ToolTip.Tip="{Binding #Root.DataContext.DragToSortTooltip}">
                                 <TextBlock Text="⠿" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <Border Classes="toolCardPinBadge" IsVisible="{Binding IsPinned}" ToolTip.Tip="已置顶">
+                            <Border Classes="toolCardPinBadge" IsVisible="{Binding IsPinned}" ToolTip.Tip="{Binding #Root.DataContext.PinnedTooltip}">
                                 <TextBlock Text="📌" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <ToggleSwitch HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6"

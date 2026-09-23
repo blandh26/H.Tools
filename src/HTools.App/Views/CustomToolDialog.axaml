@@ -1,31 +1,32 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="HTools.App.Views.CustomToolDialog"
-        Title="添加工具" Width="500" Height="340"
+        Width="500" Height="340"
         MinWidth="460" MinHeight="320"
         WindowStartupLocation="CenterOwner"
         CanResize="False">
+    <!-- All visible text is assigned in code-behind (ApplyTexts) from the localization service. -->
     <Grid RowDefinitions="*,Auto" Margin="24">
         <StackPanel Spacing="14">
-            <TextBlock Text="工具名称" FontWeight="SemiBold" />
-            <TextBox x:Name="NameBox" PlaceholderText="输入显示名称" TextChanged="OnNameChanged" />
+            <TextBlock x:Name="NameLabel" FontWeight="SemiBold" />
+            <TextBox x:Name="NameBox" TextChanged="OnNameChanged" />
 
-            <TextBlock Text="工具类型" FontWeight="SemiBold" />
+            <TextBlock x:Name="KindLabel" FontWeight="SemiBold" />
             <ComboBox x:Name="KindBox" SelectedIndex="0" SelectionChanged="OnKindChanged">
-                <ComboBoxItem Content="Windows 程序（EXE）" Tag="exe" />
-                <ComboBoxItem Content="网页链接（URL）" Tag="url" />
+                <ComboBoxItem x:Name="ExeKindItem" Tag="exe" />
+                <ComboBoxItem x:Name="UrlKindItem" Tag="url" />
             </ComboBox>
 
-            <TextBlock Text="程序路径或网址" FontWeight="SemiBold" />
+            <TextBlock x:Name="TargetLabel" FontWeight="SemiBold" />
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <TextBox x:Name="TargetBox" PlaceholderText="选择 .exe 或输入 https:// 地址" LostFocus="OnTargetLostFocus" />
-                <Button x:Name="BrowseButton" Grid.Column="1" Content="浏览…" Click="OnBrowseClick" />
+                <TextBox x:Name="TargetBox" LostFocus="OnTargetLostFocus" />
+                <Button x:Name="BrowseButton" Grid.Column="1" Click="OnBrowseClick" />
             </Grid>
             <TextBlock x:Name="ValidationText" Foreground="{DynamicResource AppDangerBrush}" TextWrapping="Wrap" />
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
-            <Button Content="保存" Classes="accent" Click="OnSaveClick" MinWidth="88" />
-            <Button Content="取消" Click="OnCancelClick" MinWidth="88" />
+            <Button x:Name="SaveButton" Classes="accent" Click="OnSaveClick" MinWidth="88" />
+            <Button x:Name="CancelButton" Click="OnCancelClick" MinWidth="88" />
         </StackPanel>
     </Grid>
 </Window>

@@ -22,7 +22,9 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         : base(loc)
     {
         _settings = settings;
-        Languages = new ObservableCollection<LanguageOption>(loc.SupportedLanguages);
+        // 每个语言项附带国旗图标，下拉框显示为"国旗 + 本地语言名"
+        Languages = new ObservableCollection<LanguageItem>(
+            loc.SupportedLanguages.Select(l => new LanguageItem(l.Code, l.NativeName, LanguageFlags.TryGet(l.Code))));
 
         _suppressPersist = true;
         SelectedLanguage = Languages.FirstOrDefault(l => l.Code == settings.Current.Language) ?? Languages[0];
@@ -32,7 +34,7 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         _suppressPersist = false;
     }
 
-    public ObservableCollection<LanguageOption> Languages { get; }
+    public ObservableCollection<LanguageItem> Languages { get; }
 
     public string Title => Loc.Translate("Settings.Title");
 
@@ -79,7 +81,7 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
     }
 
     [ObservableProperty]
-    private LanguageOption? _selectedLanguage;
+    private LanguageItem? _selectedLanguage;
 
     [ObservableProperty]
     private bool _isStartWithWindowsEnabled;
@@ -90,7 +92,7 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
     [ObservableProperty]
     private int _minToolCardWidth;
 
-    partial void OnSelectedLanguageChanged(LanguageOption? value)
+    partial void OnSelectedLanguageChanged(LanguageItem? value)
     {
         if (_suppressPersist || value is null)
         {
@@ -164,3 +166,7 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         OnPropertyChanged(nameof(WebsiteLabel));
     }
 }
+
+/// <summary>语言下拉框的一项：语言代码、本地语言名（始终用该语言自身书写，如 "日本語"，
+/// 不随界面语言翻译，方便看不懂当前界面语言的用户也能找到自己的语言）以及国旗图标。</summary>
+public sealed record LanguageItem(string Code, string NativeName, Avalonia.Media.IImage? Flag);

@@ -72,6 +72,16 @@ public sealed partial class MockApiTabViewModel : LocalizedViewModelBase, IAsync
 
     public string ClearLogLabel => Loc.Translate("MockServer.ClearLog");
 
+    public string ServiceUrlLabel => Loc.Translate("KestrelServer.ServiceUrl");
+
+    /// <summary>规则匹配说明（方法 + 路径精确匹配，未命中返回 404）。</summary>
+    public string HintText => Loc.Translate("KestrelServer.MockApiHint");
+
+    /// <summary>规则行里 Method 输入框的占位文字（"/path"、"Content-Type" 属于技术标识，保持原样不翻译）。</summary>
+    public string MethodPlaceholder => Loc.Translate("KestrelServer.RuleMethod");
+
+    public string BodyPlaceholder => Loc.Translate("MockServer.ResponseBody");
+
     public string AccessUrl => $"http://localhost:{Port}";
 
     [ObservableProperty]
@@ -168,6 +178,10 @@ public sealed partial class MockApiTabViewModel : LocalizedViewModelBase, IAsync
         OnPropertyChanged(nameof(ApplyLabel));
         OnPropertyChanged(nameof(RequestLogLabel));
         OnPropertyChanged(nameof(ClearLogLabel));
+        OnPropertyChanged(nameof(ServiceUrlLabel));
+        OnPropertyChanged(nameof(HintText));
+        OnPropertyChanged(nameof(MethodPlaceholder));
+        OnPropertyChanged(nameof(BodyPlaceholder));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

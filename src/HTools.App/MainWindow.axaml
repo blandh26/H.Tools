@@ -39,7 +39,7 @@
                                       ToolTip.Tip="{Binding PinTooltip}">
                             <TextBlock Classes="titleBarIcon" Text="&#xE718;" />
                         </ToggleButton>
-                        <Button Classes="titleBarButton" Click="OnAddToolClick" ToolTip.Tip="添加工具">
+                        <Button Classes="titleBarButton" Click="OnAddToolClick" ToolTip.Tip="{Binding AddToolTooltip}">
                             <TextBlock Classes="titleBarIcon" Text="&#xE710;" />
                         </Button>
                         <Button Classes="titleBarButton" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="{Binding SettingsTooltip}">

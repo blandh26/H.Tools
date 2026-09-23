@@ -47,7 +47,9 @@ public sealed partial class MockEchoServerViewModel : LocalizedViewModelBase, IA
 
     public string ResponseBodyLabel => Loc.Translate("MockServer.ResponseBody");
 
-    public string ResponseContentTypeLabel => "响应类型";
+    public string ResponseContentTypeLabel => Loc.Translate("MockServer.ResponseContentType");
+
+    public string AccessUrlLabel => Loc.Translate("KestrelServer.AccessUrl");
 
     public string AccessUrl => $"http://localhost:{Port}/";
 
@@ -125,6 +127,8 @@ public sealed partial class MockEchoServerViewModel : LocalizedViewModelBase, IA
         OnPropertyChanged(nameof(StopLabel));
         OnPropertyChanged(nameof(ResponseStatusLabel));
         OnPropertyChanged(nameof(ResponseBodyLabel));
+        OnPropertyChanged(nameof(ResponseContentTypeLabel));
+        OnPropertyChanged(nameof(AccessUrlLabel));
         OnPropertyChanged(nameof(RequestLogLabel));
         OnPropertyChanged(nameof(ClearLogLabel));
         OnPropertyChanged(nameof(RunningStatus));

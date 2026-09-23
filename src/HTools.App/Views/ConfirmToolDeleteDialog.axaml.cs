@@ -1,19 +1,24 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using HTools.Core.Services;
 
 namespace HTools.App.Views;
 
 public partial class ConfirmToolDeleteDialog : Window
 {
+    /// <summary>Design-time only (the XAML previewer needs a parameterless constructor).</summary>
     public ConfirmToolDeleteDialog()
-        : this(string.Empty)
+        : this(new LocalizationService(), string.Empty)
     {
     }
 
-    public ConfirmToolDeleteDialog(string name)
+    public ConfirmToolDeleteDialog(ILocalizationService loc, string name)
     {
         InitializeComponent();
-        PromptText.Text = $"确定删除“{name}”吗？";
+        Title = loc.Translate("CustomTool.DeleteTitle");
+        PromptText.Text = string.Format(loc.Translate("CustomTool.DeletePrompt"), name);
+        ConfirmButton.Content = loc.Translate("Common.Delete");
+        CancelButton.Content = loc.Translate("Common.Cancel");
     }
 
     private void OnConfirmClick(object? sender, RoutedEventArgs e) => Close(true);

@@ -47,6 +47,22 @@ public sealed partial class HomeViewModel : LocalizedViewModelBase
 
     public string SearchPlaceholder => Loc.Translate("Home.SearchPlaceholder");
 
+    public string PinToTopLabel => Loc.Translate("Home.PinToTop");
+
+    public string UnpinLabel => Loc.Translate("Home.Unpin");
+
+    public string EditLabel => Loc.Translate("Home.Edit");
+
+    public string DeleteLabel => Loc.Translate("Home.Delete");
+
+    public string DragToSortTooltip => Loc.Translate("Home.DragToSort");
+
+    public string PinnedTooltip => Loc.Translate("Home.Pinned");
+
+    /// <summary>Handed to the add/edit/delete dialogs, which are created from HomeView's code-behind
+    /// and so have no other path to the localization service.</summary>
+    public ILocalizationService Localization => Loc;
+
     private void RefreshTools()
     {
         var pinned = _settings.Current.PinnedToolIds.ToHashSet(StringComparer.Ordinal);
@@ -163,5 +179,14 @@ public sealed partial class HomeViewModel : LocalizedViewModelBase
         }
     }
 
-    protected override void OnLanguageChanged() => OnPropertyChanged(nameof(SearchPlaceholder));
+    protected override void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(SearchPlaceholder));
+        OnPropertyChanged(nameof(DragToSortTooltip));
+        OnPropertyChanged(nameof(PinnedTooltip));
+        // Card names/descriptions and the "pin"/"edit"/"delete" menu headers are read fresh each time
+        // (ToolCardViewModel refreshes itself; menu headers are assigned when the menu opens), but the
+        // search filter compares against card names, so re-run it in the new language.
+        ApplyFilter();
+    }
 }

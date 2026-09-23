@@ -14,7 +14,16 @@
                       HorizontalAlignment="Left" MinWidth="220">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding NativeName}" />
+                        <!-- 国旗(24×16，圆角 + 细描边，白底国旗在浅色主题下也有边界) + 本地语言名 -->
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Width="24" Height="16" CornerRadius="2" ClipToBounds="True"
+                                    BorderThickness="1" BorderBrush="#33000000"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding Flag, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <Image Source="{Binding Flag}" Stretch="Fill" />
+                            </Border>
+                            <TextBlock Text="{Binding NativeName}" VerticalAlignment="Center" />
+                        </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>

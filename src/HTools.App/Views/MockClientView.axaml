@@ -9,8 +9,8 @@
         <Border Grid.Row="1" Background="{DynamicResource SystemChromeLowColor}" CornerRadius="8" Padding="10">
             <DockPanel>
                 <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
-                    <TextBlock Text="历史记录" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Content="清空" Command="{Binding ClearHistoryCommand}" />
+                    <TextBlock Text="{Binding HistoryLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="{Binding ClearHistoryLabel}" Command="{Binding ClearHistoryCommand}" />
                 </Grid>
                 <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedHistory}">
                     <ListBox.ItemTemplate>
@@ -31,22 +31,22 @@
                 <Button Grid.Column="2" Content="{Binding SendLabel}" Command="{Binding SendCommand}" IsEnabled="{Binding !IsSending}" Classes="accent" MinWidth="100" />
             </Grid>
             <TabControl Grid.Row="1" Grid.RowSpan="2">
-                <TabItem Header="Params / Headers">
+                <TabItem Header="{Binding ParamsHeadersTabLabel}">
                     <Grid Margin="8" RowDefinitions="Auto,*" RowSpacing="10">
                         <TextBlock Text="{Binding HeadersLabel}" FontWeight="SemiBold" />
                         <TextBox Grid.Row="1" Text="{Binding ClientHeaders}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" />
                     </Grid>
                 </TabItem>
-                <TabItem Header="Body">
+                <TabItem Header="{Binding BodyLabel}">
                     <TextBox Margin="8" Text="{Binding ClientBody}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" />
                 </TabItem>
-                <TabItem Header="Response">
+                <TabItem Header="{Binding ResponseLabel}">
                     <ScrollViewer Margin="8">
                         <TextBlock Text="{Binding ClientResponseText}" TextWrapping="Wrap" FontFamily="Consolas,monospace" />
                     </ScrollViewer>
                 </TabItem>
             </TabControl>
-            <TextBlock Grid.Row="3" Text="Postman 风格请求工作区 · 历史保留最近 100 次请求" Opacity="0.55" FontSize="11" />
+            <TextBlock Grid.Row="3" Text="{Binding FooterText}" Opacity="0.55" FontSize="11" />
         </Grid>
     </Grid>
 </UserControl>

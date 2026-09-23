@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net;
 using System.Text.RegularExpressions;
 using HTools.Core.Models;
+using HTools.Core.Services;
 using HTools.Windows.Imaging;
 
 namespace HTools.App.Views;
@@ -12,24 +13,27 @@ namespace HTools.App.Views;
 public partial class CustomToolDialog : Window
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(8) };
+    private readonly ILocalizationService _loc;
     private readonly CustomToolItem? _existing;
     private bool _loading;
     private bool _settingName;
     private bool _nameManuallyEdited;
 
+    /// <summary>Design-time only (the XAML previewer needs a parameterless constructor).</summary>
     public CustomToolDialog()
-        : this(null)
+        : this(new LocalizationService(), null)
     {
     }
 
-    public CustomToolDialog(CustomToolItem? existing)
+    public CustomToolDialog(ILocalizationService loc, CustomToolItem? existing = null)
     {
         _loading = true;
+        _loc = loc;
         InitializeComponent();
         _existing = existing;
+        ApplyTexts();
         if (existing is not null)
         {
-            Title = "修改工具";
             NameBox.Text = existing.Name;
             KindBox.SelectedIndex = existing.Kind == "url" ? 1 : 0;
             TargetBox.Text = existing.Target;
@@ -40,6 +44,22 @@ public partial class CustomToolDialog : Window
     }
 
     public CustomToolItem? Result { get; private set; }
+
+    /// <summary>The dialog is modal and short-lived, so its text is filled once when it opens rather
+    /// than bound — the language can't change while it's on screen.</summary>
+    private void ApplyTexts()
+    {
+        Title = _loc.Translate(_existing is null ? "CustomTool.AddTitle" : "CustomTool.EditTitle");
+        NameLabel.Text = _loc.Translate("CustomTool.Name");
+        NameBox.PlaceholderText = _loc.Translate("CustomTool.NamePlaceholder");
+        KindLabel.Text = _loc.Translate("CustomTool.Kind");
+        ExeKindItem.Content = _loc.Translate("CustomTool.KindExe");
+        UrlKindItem.Content = _loc.Translate("CustomTool.KindUrl");
+        TargetLabel.Text = _loc.Translate("CustomTool.Target");
+        BrowseButton.Content = _loc.Translate("CustomTool.Browse");
+        SaveButton.Content = _loc.Translate("Common.Save");
+        CancelButton.Content = _loc.Translate("Common.Cancel");
+    }
 
     private void OnKindChanged(object? sender, SelectionChangedEventArgs e) => UpdateKindControls();
 
@@ -59,7 +79,9 @@ public partial class CustomToolDialog : Window
         }
 
         BrowseButton.IsVisible = KindBox.SelectedIndex == 0;
-        TargetBox.PlaceholderText = KindBox.SelectedIndex == 0 ? "选择 .exe 文件" : "输入 https:// 地址";
+        TargetBox.PlaceholderText = _loc.Translate(KindBox.SelectedIndex == 0
+            ? "CustomTool.TargetPlaceholderExe"
+            : "CustomTool.TargetPlaceholderUrl");
     }
 
     private async void OnBrowseClick(object? sender, RoutedEventArgs e)
@@ -67,7 +89,7 @@ public partial class CustomToolDialog : Window
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             AllowMultiple = false,
-            FileTypeFilter = [new FilePickerFileType("Windows 程序") { Patterns = ["*.exe"] }],
+            FileTypeFilter = [new FilePickerFileType(_loc.Translate("CustomTool.ExeFileType")) { Patterns = ["*.exe"] }],
         });
 
         var path = files.FirstOrDefault()?.TryGetLocalPath();
@@ -189,19 +211,19 @@ public partial class CustomToolDialog : Window
         var kind = KindBox.SelectedIndex == 1 ? "url" : "exe";
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(target))
         {
-            ValidationText.Text = "请填写工具名称和路径/网址。";
+            ValidationText.Text = _loc.Translate("CustomTool.ErrorRequired");
             return;
         }
 
         if (kind == "exe" && (!File.Exists(target) || !string.Equals(Path.GetExtension(target), ".exe", StringComparison.OrdinalIgnoreCase)))
         {
-            ValidationText.Text = "请选择有效的 .exe 文件。";
+            ValidationText.Text = _loc.Translate("CustomTool.ErrorInvalidExe");
             return;
         }
 
         if (kind == "url" && (!Uri.TryCreate(target, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https")))
         {
-            ValidationText.Text = "请输入有效的 http 或 https 网址。";
+            ValidationText.Text = _loc.Translate("CustomTool.ErrorInvalidUrl");
             return;
         }
 

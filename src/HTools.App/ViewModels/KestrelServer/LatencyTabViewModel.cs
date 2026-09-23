@@ -45,6 +45,9 @@ public sealed partial class LatencyTabViewModel : LocalizedViewModelBase, IAsync
 
     public string TargetUrlLabel => Loc.Translate("KestrelServer.TargetUrl");
 
+    /// <summary>"模拟入口"——客户端请求这个地址，经延迟后再转发/响应。</summary>
+    public string LatencyEntryUrlLabel => Loc.Translate("KestrelServer.LatencyEntryUrl");
+
     public string AccessUrl => $"http://localhost:{Port}/";
 
     [ObservableProperty]
@@ -110,6 +113,7 @@ public sealed partial class LatencyTabViewModel : LocalizedViewModelBase, IAsync
         OnPropertyChanged(nameof(StopLabel));
         OnPropertyChanged(nameof(DelayMsLabel));
         OnPropertyChanged(nameof(TargetUrlLabel));
+        OnPropertyChanged(nameof(LatencyEntryUrlLabel));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

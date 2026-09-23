@@ -42,6 +42,11 @@ public sealed partial class ProxyTabViewModel : LocalizedViewModelBase, IAsyncDi
 
     public string TargetUrlLabel => Loc.Translate("KestrelServer.TargetUrl");
 
+    /// <summary>"代理入口"——本机监听地址，请求会被转发到目标服务。</summary>
+    public string ProxyEntryUrlLabel => Loc.Translate("KestrelServer.ProxyEntryUrl");
+
+    public string HintText => Loc.Translate("KestrelServer.ProxyHint");
+
     public string AccessUrl => $"http://localhost:{Port}/";
 
     [ObservableProperty]
@@ -99,6 +104,8 @@ public sealed partial class ProxyTabViewModel : LocalizedViewModelBase, IAsyncDi
         OnPropertyChanged(nameof(StartLabel));
         OnPropertyChanged(nameof(StopLabel));
         OnPropertyChanged(nameof(TargetUrlLabel));
+        OnPropertyChanged(nameof(ProxyEntryUrlLabel));
+        OnPropertyChanged(nameof(HintText));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();
