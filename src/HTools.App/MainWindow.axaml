@@ -15,9 +15,15 @@
     <!-- Everything lives in one Panel so the resize-handle strips (added after, so they paint on top)
          can overlay the thin edges of the real content underneath them. SystemDecorations="None" means
          there is no native window frame at all — no chrome to fight for space with our custom title-bar
-         buttons, but also no OS-provided edge/corner resize, which the handles below replace. -->
+         buttons, but also no OS-provided edge/corner resize, which the handles below replace.
+
+         Critical: with no native chrome, nothing implicitly paints the window opaque anymore (that used
+         to be the OS frame's job) — the outer Border below MUST have an explicit Background, or the
+         window renders as a transparent/blank rectangle, which is exactly what happened before this
+         Background was added: the app "opened" but showed nothing. -->
     <Panel>
-        <Border BorderBrush="{DynamicResource SystemChromeMediumColor}" BorderThickness="1">
+        <Border Background="{DynamicResource SystemChromeLowColor}"
+                BorderBrush="{DynamicResource SystemChromeMediumColor}" BorderThickness="1">
             <Grid RowDefinitions="Auto,*">
                 <!-- Custom title bar: replaces the native one so a Pin (always-on-top) button can sit
                      directly left of Minimize, which native OS window chrome has no way to accommodate. -->
