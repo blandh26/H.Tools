@@ -5,8 +5,8 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
              x:Class="HTools.App.Views.MouseEffectView">
     <StackPanel Spacing="18" Margin="4" MaxWidth="480">
-        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" />
-        <TextBlock Text="{Binding Hint}" Opacity="0.6" FontSize="12" />
+        <TextBlock Text="{Binding Title}" Classes="pageTitle" Margin="0" />
+        <TextBlock Text="{Binding Hint}" Classes="hint" />
 
         <StackPanel Orientation="Horizontal" Spacing="10">
             <ToggleSwitch IsChecked="{Binding IsEnabled}" />

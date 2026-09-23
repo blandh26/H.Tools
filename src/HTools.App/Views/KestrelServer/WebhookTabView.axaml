@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
              x:Class="HTools.App.Views.KestrelServer.WebhookTabView">
     <DockPanel Margin="4">
-        <TextBlock DockPanel.Dock="Top" Text="{Binding Title}" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Title}" Classes="pageTitle" />
 
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
             <TextBlock Text="{Binding PortLabel}" Width="90" VerticalAlignment="Center" />

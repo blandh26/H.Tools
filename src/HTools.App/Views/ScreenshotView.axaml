@@ -5,13 +5,14 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
              x:Class="HTools.App.Views.ScreenshotView">
     <StackPanel Spacing="18" Margin="4" MaxWidth="480">
-        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" />
-        <TextBlock Text="{Binding Hint}" Opacity="0.6" FontSize="12" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding Title}" Classes="pageTitle" Margin="0" />
+        <TextBlock Text="{Binding Hint}" Classes="hint" TextWrapping="Wrap" />
 
         <Border IsVisible="{Binding HasHotkeyWarning}"
-                Background="#332E1F" BorderBrush="#B8860B" BorderThickness="1"
+                Background="{DynamicResource AppWarningBackgroundColor}"
+                BorderBrush="{DynamicResource AppWarningBorderColor}" BorderThickness="1"
                 CornerRadius="6" Padding="10,8">
-            <TextBlock Text="{Binding HotkeyWarning}" TextWrapping="Wrap" Foreground="#E0A800" FontSize="12" />
+            <TextBlock Text="{Binding HotkeyWarning}" TextWrapping="Wrap" Foreground="{DynamicResource AppWarningForegroundColor}" FontSize="12" />
         </Border>
 
         <Button Content="{Binding CaptureNowLabel}" Command="{Binding CaptureNowCommand}" Classes="accent" HorizontalAlignment="Left" Padding="18,10" />

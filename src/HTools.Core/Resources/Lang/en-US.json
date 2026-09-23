@@ -8,6 +8,7 @@
   "Nav.DevTools": "Dev Tools",
   "Nav.Utilities": "Common Tools",
   "Nav.Settings": "Settings",
+  "Home.SearchPlaceholder": "Search tools…",
   "Status.Running": "Running",
   "Status.Stopped": "Stopped",
   "Tool.Clipboard.Name": "Multi Clipboard",

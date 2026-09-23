@@ -7,6 +7,11 @@
              x:Name="Root">
     <ScrollViewer>
         <StackPanel Spacing="24" Margin="4">
+            <TextBox Text="{Binding SearchText}"
+                     PlaceholderText="{Binding SearchPlaceholder}"
+                     IsVisible="{Binding ShowSearch}"
+                     MaxWidth="320" HorizontalAlignment="Left" />
+
             <ItemsControl ItemsSource="{Binding Cards}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -20,7 +25,10 @@
                                     Command="{Binding #Root.DataContext.OpenToolCommand}"
                                     CommandParameter="{Binding}">
                                 <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Icon}" FontSize="30" HorizontalAlignment="Center" />
+                                    <Image Source="{Binding IconImage}" Width="32" Height="32"
+                                           IsVisible="{Binding IconImage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                    <TextBlock Text="{Binding Icon}" FontSize="30" HorizontalAlignment="Center"
+                                               IsVisible="{Binding IconImage, Converter={x:Static ObjectConverters.IsNull}}" />
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" HorizontalAlignment="Center" />
                                     <TextBlock Text="{Binding Description}"
                                                FontSize="11" Opacity="0.7"

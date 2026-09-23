@@ -9,6 +9,42 @@
         <local:ViewLocator />
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Shared status/accent colors, reused for both the screenshot toolbar's SVG icons and
+                 every "error"/"success" indicator elsewhere in the app, so they read as one consistent
+                 palette instead of clashing hand-picked colors per screen. Mid-saturation tones (the
+                 same family Tailwind CSS uses for its default palette) were chosen specifically because
+                 they hold up on both light and dark backgrounds without needing per-theme variants. -->
+            <Color x:Key="AppDangerColor">#EF4444</Color>
+            <Color x:Key="AppWarningColor">#F59E0B</Color>
+            <Color x:Key="AppSuccessColor">#22C55E</Color>
+            <Color x:Key="AppInfoColor">#3B82F6</Color>
+            <SolidColorBrush x:Key="AppDangerBrush" Color="{StaticResource AppDangerColor}" />
+            <SolidColorBrush x:Key="AppWarningBrush" Color="{StaticResource AppWarningColor}" />
+            <SolidColorBrush x:Key="AppSuccessBrush" Color="{StaticResource AppSuccessColor}" />
+            <SolidColorBrush x:Key="AppInfoBrush" Color="{StaticResource AppInfoColor}" />
+
+            <!-- Unlike the accent colors above, a "warning callout box" background genuinely needs a
+                 different value per theme — a dark amber-tinted panel that looks intentional on a dark
+                 background would look like a rendering glitch sitting on a light one (this was previously
+                 hardcoded to only the dark-theme value, e.g. in the clipboard/screenshot hotkey-conflict
+                 warning boxes, so it looked wrong whenever the app ran in light mode). -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="AppWarningBackgroundColor">#FFF7E0</Color>
+                    <Color x:Key="AppWarningBorderColor">#E0A800</Color>
+                    <Color x:Key="AppWarningForegroundColor">#8A6100</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="AppWarningBackgroundColor">#332E1F</Color>
+                    <Color x:Key="AppWarningBorderColor">#B8860B</Color>
+                    <Color x:Key="AppWarningForegroundColor">#E0A800</Color>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
 
@@ -24,6 +60,18 @@
             <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
         </Style>
 
+        <!-- Type scale: one place to tune "what a page title looks like" / "what a secondary hint looks
+             like" instead of the same FontSize+FontWeight pair repeated inline on every page. -->
+        <Style Selector="TextBlock.pageTitle">
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <Style Selector="TextBlock.hint">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+
         <Style Selector="Grid.toolCardHost">
             <Setter Property="Width" Value="200" />
             <Setter Property="Height" Value="120" />
@@ -34,6 +82,15 @@
             <Setter Property="VerticalAlignment" Value="Stretch" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <!-- Hover reads as "this card lifted up", not a color change — matches the reference app-center
+             grid, whose cards only ever gain a drop shadow on hover, nothing else. Effect (not Border's
+             BoxShadow) because this is set directly on the Button, which has no BoxShadow property of
+             its own. -->
+        <Style Selector="Button.toolCard:pointerover">
+            <Setter Property="Effect">
+                <DropShadowEffect OffsetX="0" OffsetY="4" BlurRadius="16" Color="Black" Opacity="0.25" />
+            </Setter>
         </Style>
 
         <Style Selector="Button.link">
@@ -86,6 +143,37 @@
         </Style>
         <Style Selector="Button.titleBarButton.closeButton:pointerover TextBlock">
             <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!-- Sun/moon theme switch: a pill track with a circular thumb that shows a sun glyph on the
+             left (light) or slides to the right and shows a moon glyph (dark). -->
+        <Style Selector="ToggleButton.themeSwitch">
+            <Setter Property="Width" Value="56" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid>
+                        <Border Name="Track" CornerRadius="14" Background="#9CA3AF" />
+                        <Border Name="Thumb" Width="24" Height="24" CornerRadius="12" Background="White"
+                                HorizontalAlignment="Left" Margin="2,0,0,0">
+                            <TextBlock Name="Glyph" Text="☀" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ToggleButton.themeSwitch:checked /template/ Border#Track">
+            <Setter Property="Background" Value="#1E3A8A" />
+        </Style>
+        <Style Selector="ToggleButton.themeSwitch:checked /template/ Border#Thumb">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Margin" Value="0,0,2,0" />
+        </Style>
+        <Style Selector="ToggleButton.themeSwitch:checked /template/ TextBlock#Glyph">
+            <Setter Property="Text" Value="🌙" />
         </Style>
     </Application.Styles>
 </Application>

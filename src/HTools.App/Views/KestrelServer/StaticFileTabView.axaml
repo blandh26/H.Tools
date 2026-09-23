@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="360"
              x:Class="HTools.App.Views.KestrelServer.StaticFileTabView">
     <StackPanel Spacing="12" Margin="4">
-        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+        <TextBlock Text="{Binding Title}" Classes="pageTitle" />
         <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Text="{Binding PortLabel}" Width="90" VerticalAlignment="Center" />
             <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" Width="140" FormatString="0" />
@@ -16,6 +16,6 @@
             <TextBlock Text="{Binding RootFolderLabel}" Width="90" VerticalAlignment="Center" />
             <TextBox Text="{Binding RootFolder}" Width="420" />
         </StackPanel>
-        <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppDangerBrush}" TextWrapping="Wrap" />
     </StackPanel>
 </UserControl>

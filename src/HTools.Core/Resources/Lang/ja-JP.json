@@ -8,6 +8,7 @@
   "Nav.DevTools": "開発ツール",
   "Nav.Utilities": "よく使うツール",
   "Nav.Settings": "設定",
+  "Home.SearchPlaceholder": "ツールを検索…",
   "Status.Running": "実行中",
   "Status.Stopped": "停止中",
   "Tool.Clipboard.Name": "マルチクリップボード",

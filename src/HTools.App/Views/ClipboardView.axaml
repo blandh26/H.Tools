@@ -7,7 +7,7 @@
              x:Name="Root">
     <DockPanel Margin="4">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,4" VerticalAlignment="Center">
-            <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Title}" Classes="pageTitle" Margin="0" VerticalAlignment="Center" />
             <Button Content="{Binding NewLabel}" Command="{Binding NewEntryCommand}" />
         </StackPanel>
 
@@ -15,9 +15,10 @@
 
         <Border DockPanel.Dock="Top"
                 IsVisible="{Binding HasHotkeyWarning}"
-                Background="#332E1F" BorderBrush="#B8860B" BorderThickness="1"
+                Background="{DynamicResource AppWarningBackgroundColor}"
+                BorderBrush="{DynamicResource AppWarningBorderColor}" BorderThickness="1"
                 CornerRadius="6" Padding="10,8" Margin="0,0,0,12">
-            <TextBlock Text="{Binding HotkeyWarning}" TextWrapping="Wrap" Foreground="#E0A800" FontSize="12" />
+            <TextBlock Text="{Binding HotkeyWarning}" TextWrapping="Wrap" Foreground="{DynamicResource AppWarningForegroundColor}" FontSize="12" />
         </Border>
 
         <ListBox x:Name="SlotsList" ItemsSource="{Binding Slots}" SelectionMode="Single" DoubleTapped="OnSlotDoubleTapped">

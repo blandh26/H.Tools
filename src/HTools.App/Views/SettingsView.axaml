@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
              x:Class="HTools.App.Views.SettingsView">
     <StackPanel Spacing="20" Margin="4" MaxWidth="480">
-        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" />
+        <TextBlock Text="{Binding Title}" Classes="pageTitle" Margin="0" />
 
         <StackPanel Spacing="6">
             <TextBlock Text="{Binding LanguageLabel}" FontWeight="SemiBold" />
@@ -25,11 +25,11 @@
                 <ToggleSwitch IsChecked="{Binding IsStartWithWindowsEnabled}" />
                 <TextBlock Text="{Binding StartWithWindowsLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
             </StackPanel>
-            <TextBlock Text="{Binding StartWithWindowsHint}" Opacity="0.6" FontSize="12" />
+            <TextBlock Text="{Binding StartWithWindowsHint}" Classes="hint" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="10">
-            <ToggleSwitch IsChecked="{Binding IsDarkThemeEnabled}" />
+            <ToggleButton Classes="themeSwitch" IsChecked="{Binding IsDarkThemeEnabled}" />
             <TextBlock Text="{Binding DarkThemeLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
         </StackPanel>
 
