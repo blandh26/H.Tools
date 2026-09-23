@@ -97,6 +97,12 @@ internal static class ScreenshotIcons
               <rect x="7" y="13" width="10" height="5" fill="white"/>
             </svg>
             """,
+        ["check"] = """
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" fill="#22C55E"/>
+              <path d="M7.5 12.5 L10.5 15.5 L16.5 9" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            """,
         ["cancel"] = """
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="9" fill="#EF4444"/>

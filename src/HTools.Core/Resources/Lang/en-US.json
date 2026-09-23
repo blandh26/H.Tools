@@ -117,6 +117,7 @@
   "Screenshot.Tool.Freehand": "Freehand",
   "Screenshot.Tool.Text": "Text",
   "Screenshot.Tool.Mosaic": "Mosaic",
+  "Screenshot.Action.Done": "Done",
   "Screenshot.Action.Undo": "Undo",
   "Screenshot.Action.Pin": "Pin to screen",
   "Screenshot.Action.Copy": "Copy to clipboard",

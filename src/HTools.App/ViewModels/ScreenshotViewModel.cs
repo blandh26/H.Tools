@@ -77,6 +77,7 @@ public sealed partial class ScreenshotViewModel : LocalizedViewModelBase
         Loc.Translate("Screenshot.Tool.Freehand"),
         Loc.Translate("Screenshot.Tool.Text"),
         Loc.Translate("Screenshot.Tool.Mosaic"),
+        Loc.Translate("Screenshot.Action.Done"),
         Loc.Translate("Screenshot.Action.Undo"),
         Loc.Translate("Screenshot.Action.Pin"),
         Loc.Translate("Screenshot.Action.Copy"),
