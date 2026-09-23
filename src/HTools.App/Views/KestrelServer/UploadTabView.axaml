@@ -6,18 +6,40 @@
              x:Class="HTools.App.Views.KestrelServer.UploadTabView">
     <StackPanel Spacing="12" Margin="4">
         <TextBlock Text="{Binding Title}" Classes="pageTitle" />
+        <TabControl>
+            <TabItem Header="服务配置">
+        <StackPanel Spacing="12" Margin="6">
         <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Text="{Binding PortLabel}" Width="90" VerticalAlignment="Center" />
             <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" Width="140" FormatString="0" />
             <Button Content="{Binding StartLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding !IsRunning}" Classes="accent" />
             <Button Content="{Binding StopLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding IsRunning}" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="10">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
             <TextBlock Text="{Binding UploadFolderLabel}" Width="90" VerticalAlignment="Center" />
-            <TextBox Text="{Binding UploadFolder}" Width="420" />
-        </StackPanel>
+            <TextBox Grid.Column="1" Text="{Binding UploadFolder}" IsReadOnly="True" />
+            <Button Grid.Column="2" Content="选择文件夹…" Click="OnChooseFolderClick" />
+        </Grid>
         <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppDangerBrush}" TextWrapping="Wrap" />
         <TextBlock Text="{Binding ReceivedFilesLabel}" FontWeight="SemiBold" />
         <ListBox ItemsSource="{Binding ReceivedFiles}" Height="200" />
+        </StackPanel>
+            </TabItem>
+            <TabItem Header="访问与使用">
+                <ScrollViewer>
+                    <StackPanel Spacing="12" Margin="16" MaxWidth="760" HorizontalAlignment="Left">
+                        <TextBlock Text="访问地址" FontWeight="SemiBold" />
+                        <TextBox Text="{Binding AccessUrl}" IsReadOnly="True" />
+                        <TextBlock Text="使用方法" FontWeight="SemiBold" />
+                        <TextBlock Text="启动服务后，在浏览器打开上面的地址，选择文件并上传。上传成功后，文件会保存到配置的目标目录。" TextWrapping="Wrap" />
+                        <TextBlock Text="命令行示例" FontWeight="SemiBold" />
+                        <Border Background="{DynamicResource SystemChromeLowColor}" Padding="12" CornerRadius="6">
+                            <TextBlock Text="{Binding UploadExample}" FontFamily="Consolas,monospace" TextWrapping="Wrap" />
+                        </Border>
+                        <TextBlock Text="也可使用 curl -F 上传。远程设备访问时，请将 localhost 替换为本机局域网 IP，并确认防火墙允许该端口。" TextWrapping="Wrap" Opacity="0.7" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
     </StackPanel>
 </UserControl>

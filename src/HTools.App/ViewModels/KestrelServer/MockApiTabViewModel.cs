@@ -72,6 +72,8 @@ public sealed partial class MockApiTabViewModel : LocalizedViewModelBase, IAsync
 
     public string ClearLogLabel => Loc.Translate("MockServer.ClearLog");
 
+    public string AccessUrl => $"http://localhost:{Port}";
+
     [ObservableProperty]
     private int _port;
 
@@ -126,6 +128,7 @@ public sealed partial class MockApiTabViewModel : LocalizedViewModelBase, IAsync
 
         _settings.Current.KestrelServer.MockApi.Port = value;
         _settings.Save();
+        OnPropertyChanged(nameof(AccessUrl));
     }
 
     private void PushRules()

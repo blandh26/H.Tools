@@ -7,7 +7,22 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
   </PropertyGroup>
+
+  <!-- Use commit height as the fourth version component. The current repository head is the
+       1.0.0.1 baseline; each later commit advances the displayed build version automatically. -->
+  <Target Name="SetVersionFromGit" BeforeTargets="GenerateAssemblyInfo">
+    <Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitCount" />
+    </Exec>
+    <PropertyGroup Condition="'$(_GitCommitCount)' != ''">
+      <_GitVersionRevision>$([MSBuild]::Subtract($(_GitCommitCount), 14))</_GitVersionRevision>
+      <AssemblyVersion Condition="$(_GitVersionRevision) &gt; 0">1.0.0.$(_GitVersionRevision)</AssemblyVersion>
+      <FileVersion Condition="$(_GitVersionRevision) &gt; 0">1.0.0.$(_GitVersionRevision)</FileVersion>
+    </PropertyGroup>
+  </Target>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />

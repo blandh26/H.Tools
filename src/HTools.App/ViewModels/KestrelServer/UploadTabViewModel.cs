@@ -45,6 +45,10 @@ public sealed partial class UploadTabViewModel : LocalizedViewModelBase, IAsyncD
 
     public string ReceivedFilesLabel => Loc.Translate("KestrelServer.ReceivedFiles");
 
+    public string AccessUrl => $"http://localhost:{Port}/";
+
+    public string UploadExample => $"curl -F \"file=@C:\\path\\to\\file.zip\" http://localhost:{Port}/";
+
     [ObservableProperty]
     private int _port;
 
@@ -75,7 +79,12 @@ public sealed partial class UploadTabViewModel : LocalizedViewModelBase, IAsyncD
         ErrorMessage = IsRunning ? null : _module.LastError;
     }
 
-    partial void OnPortChanged(int value) => Persist();
+    partial void OnPortChanged(int value)
+    {
+        Persist();
+        OnPropertyChanged(nameof(AccessUrl));
+        OnPropertyChanged(nameof(UploadExample));
+    }
 
     partial void OnUploadFolderChanged(string value) => Persist();
 

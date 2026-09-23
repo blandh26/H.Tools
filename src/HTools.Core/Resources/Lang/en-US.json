@@ -45,6 +45,8 @@
   "Settings.StartWithWindows": "Start with Windows",
   "Settings.StartWithWindowsHint": "Launch H.Tools automatically after sign-in",
   "Settings.DarkTheme": "Dark theme",
+  "Settings.MinToolCardWidth": "Minimum tool card width",
+  "Settings.MinToolCardWidthHint": "The number of cards per row adjusts to the available space. A larger value shows fewer cards per row.",
   "Clipboard.Title": "Multi Clipboard",
   "Clipboard.Slot": "Slot",
   "Clipboard.Empty": "(empty)",

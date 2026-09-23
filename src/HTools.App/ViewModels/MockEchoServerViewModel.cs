@@ -29,6 +29,7 @@ public sealed partial class MockEchoServerViewModel : LocalizedViewModelBase, IA
         Port = saved.Port;
         ResponseStatusCode = saved.ResponseStatusCode;
         ResponseBody = saved.ResponseBody;
+        ResponseContentType = saved.ResponseContentType;
         _suppressPersist = false;
     }
 
@@ -45,6 +46,10 @@ public sealed partial class MockEchoServerViewModel : LocalizedViewModelBase, IA
     public string ResponseStatusLabel => Loc.Translate("MockServer.ResponseStatus");
 
     public string ResponseBodyLabel => Loc.Translate("MockServer.ResponseBody");
+
+    public string ResponseContentTypeLabel => "响应类型";
+
+    public string AccessUrl => $"http://localhost:{Port}/";
 
     public string RequestLogLabel => Loc.Translate("MockServer.RequestLog");
 
@@ -64,6 +69,9 @@ public sealed partial class MockEchoServerViewModel : LocalizedViewModelBase, IA
     [ObservableProperty]
     private string _responseBody = "OK";
 
+    [ObservableProperty]
+    private string _responseContentType = "text/plain; charset=utf-8";
+
     [RelayCommand]
     private async Task ToggleServerAsync()
     {
@@ -76,6 +84,7 @@ public sealed partial class MockEchoServerViewModel : LocalizedViewModelBase, IA
         {
             _server.ResponseStatusCode = ResponseStatusCode;
             _server.ResponseBody = ResponseBody;
+            _server.ResponseContentType = ResponseContentType;
             IsRunning = await _server.StartAsync(Port);
         }
 
@@ -85,11 +94,17 @@ public sealed partial class MockEchoServerViewModel : LocalizedViewModelBase, IA
     [RelayCommand]
     private void ClearLog() => RequestLog.Clear();
 
-    partial void OnPortChanged(int value) => Persist(s => s.Port = value);
+    partial void OnPortChanged(int value)
+    {
+        Persist(s => s.Port = value);
+        OnPropertyChanged(nameof(AccessUrl));
+    }
 
     partial void OnResponseStatusCodeChanged(int value) => Persist(s => s.ResponseStatusCode = value);
 
     partial void OnResponseBodyChanged(string value) => Persist(s => s.ResponseBody = value);
+
+    partial void OnResponseContentTypeChanged(string value) => Persist(s => s.ResponseContentType = value);
 
     private void Persist(Action<Core.Models.MockServerSettings> apply)
     {

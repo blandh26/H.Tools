@@ -8,6 +8,14 @@ public sealed class AppSettings
 
     public bool IsDarkTheme { get; set; } = true;
 
+    public int MinToolCardWidth { get; set; } = 220;
+
+    public List<CustomToolItem> CustomTools { get; set; } = [];
+
+    public List<string> ToolboxOrder { get; set; } = [];
+
+    public List<string> PinnedToolIds { get; set; } = [];
+
     public List<ClipboardSlot> ClipboardSlots { get; set; } = [];
 
     public MouseEffectSettings MouseEffect { get; set; } = new();

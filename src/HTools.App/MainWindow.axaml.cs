@@ -2,6 +2,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using HTools.App.Views;
+using HTools.App.ViewModels;
+using HTools.Core.Models;
 
 namespace HTools.App;
 
@@ -11,7 +14,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         UpdateMaximizeGlyph();
-        UpdateWindowFrame();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -24,7 +26,6 @@ public partial class MainWindow : Window
         if (change.Property == WindowStateProperty)
         {
             UpdateMaximizeGlyph();
-            UpdateWindowFrame();
         }
     }
 
@@ -51,6 +52,20 @@ public partial class MainWindow : Window
     private void OnMaximizeRestoreClick(object? sender, RoutedEventArgs e) => ToggleMaximizeRestore();
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
+
+    private async void OnAddToolClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        var result = await new CustomToolDialog().ShowDialog<CustomToolItem?>(this);
+        if (result is not null)
+        {
+            viewModel.Home.AddCustomTool(result);
+        }
+    }
 
     // WindowDecorations="None" drops the OS's own edge/corner resize handling along with the rest of
     // its chrome, so these replace it — each is wired to a thin transparent strip around the window's
@@ -82,10 +97,4 @@ public partial class MainWindow : Window
         MaximizeGlyph.Text = WindowState == WindowState.Maximized ? "🗗" : "🗖";
     }
 
-    private void UpdateWindowFrame()
-    {
-        var isMaximized = WindowState == WindowState.Maximized;
-        WindowFrame.Margin = isMaximized ? new Thickness(0) : new Thickness(5);
-        WindowFrame.CornerRadius = isMaximized ? new CornerRadius(0) : new CornerRadius(14);
-    }
 }

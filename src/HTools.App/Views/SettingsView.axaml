@@ -33,6 +33,14 @@
             <TextBlock Text="{Binding DarkThemeLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
         </StackPanel>
 
+        <StackPanel Spacing="6">
+            <TextBlock Text="{Binding MinToolCardWidthLabel}" FontWeight="SemiBold" />
+            <NumericUpDown Value="{Binding MinToolCardWidth}"
+                           Minimum="160" Maximum="360" Increment="10"
+                           FormatString="0" Width="120" HorizontalAlignment="Left" />
+            <TextBlock Text="{Binding MinToolCardWidthHint}" Classes="hint" TextWrapping="Wrap" />
+        </StackPanel>
+
         <StackPanel Spacing="8">
             <TextBlock Text="{Binding AboutLabel}" FontWeight="SemiBold" />
             <StackPanel Orientation="Horizontal" Spacing="8">

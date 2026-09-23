@@ -45,6 +45,8 @@
   "Settings.StartWithWindows": "Windows 시작 시 자동 실행",
   "Settings.StartWithWindowsHint": "로그인 후 H.Tools를 자동으로 시작합니다",
   "Settings.DarkTheme": "다크 테마",
+  "Settings.MinToolCardWidth": "도구 카드 최소 너비",
+  "Settings.MinToolCardWidthHint": "사용 가능한 너비에 따라 한 줄의 카드 수를 자동으로 조정합니다. 값이 클수록 카드 수가 줄어듭니다.",
   "Clipboard.Title": "멀티 클립보드",
   "Clipboard.Slot": "슬롯",
   "Clipboard.Empty": "(비어 있음)",

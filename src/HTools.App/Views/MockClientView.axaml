@@ -2,34 +2,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="560"
+             mc:Ignorable="d" d:DesignWidth="980" d:DesignHeight="640"
              x:Class="HTools.App.Views.MockClientView">
-    <StackPanel Spacing="12" Margin="4">
-        <TextBlock Text="{Binding Title}" Classes="pageTitle" />
-
-        <StackPanel Orientation="Horizontal" Spacing="10">
-            <ComboBox ItemsSource="{Binding HttpMethods}" SelectedItem="{Binding ClientMethod}" Width="110" />
-            <TextBox Text="{Binding ClientUrl}" PlaceholderText="{Binding UrlLabel}" Width="420" />
-            <Button Content="{Binding SendLabel}" Command="{Binding SendCommand}" IsEnabled="{Binding !IsSending}" Classes="accent" />
-        </StackPanel>
-
-        <StackPanel Spacing="6">
-            <TextBlock Text="{Binding HeadersLabel}" />
-            <TextBox Text="{Binding ClientHeaders}" AcceptsReturn="True" Height="60" TextWrapping="Wrap" />
-        </StackPanel>
-
-        <StackPanel Spacing="6">
-            <TextBlock Text="{Binding BodyLabel}" />
-            <TextBox Text="{Binding ClientBody}" AcceptsReturn="True" Height="90" TextWrapping="Wrap" />
-        </StackPanel>
-
-        <StackPanel Spacing="6">
-            <TextBlock Text="{Binding ResponseLabel}" FontWeight="SemiBold" />
-            <Border Background="{DynamicResource SystemChromeLowColor}" CornerRadius="6" Padding="10">
-                <ScrollViewer Height="200">
-                    <TextBlock Text="{Binding ClientResponseText}" TextWrapping="Wrap" FontFamily="Consolas,monospace" />
-                </ScrollViewer>
-            </Border>
-        </StackPanel>
-    </StackPanel>
+    <Grid Margin="4" ColumnDefinitions="240,12,*" RowDefinitions="Auto,*">
+        <TextBlock Grid.ColumnSpan="3" Text="{Binding Title}" Classes="pageTitle" Margin="0,0,0,14" />
+        <Border Grid.Row="1" Background="{DynamicResource SystemChromeLowColor}" CornerRadius="8" Padding="10">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                    <TextBlock Text="历史记录" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="清空" Command="{Binding ClearHistoryCommand}" />
+                </Grid>
+                <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedHistory}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Spacing="3" Margin="4">
+                                <TextBlock Text="{Binding Method}" FontSize="11" FontWeight="Bold" />
+                                <TextBlock Text="{Binding Url}" TextTrimming="CharacterEllipsis" FontSize="12" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+        <Grid Grid.Row="1" Grid.Column="2" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
+            <Grid ColumnDefinitions="110,*,Auto" ColumnSpacing="8">
+                <ComboBox ItemsSource="{Binding HttpMethods}" SelectedItem="{Binding ClientMethod}" />
+                <TextBox Grid.Column="1" Text="{Binding ClientUrl}" PlaceholderText="{Binding UrlLabel}" />
+                <Button Grid.Column="2" Content="{Binding SendLabel}" Command="{Binding SendCommand}" IsEnabled="{Binding !IsSending}" Classes="accent" MinWidth="100" />
+            </Grid>
+            <TabControl Grid.Row="1" Grid.RowSpan="2">
+                <TabItem Header="Params / Headers">
+                    <Grid Margin="8" RowDefinitions="Auto,*" RowSpacing="10">
+                        <TextBlock Text="{Binding HeadersLabel}" FontWeight="SemiBold" />
+                        <TextBox Grid.Row="1" Text="{Binding ClientHeaders}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Body">
+                    <TextBox Margin="8" Text="{Binding ClientBody}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" />
+                </TabItem>
+                <TabItem Header="Response">
+                    <ScrollViewer Margin="8">
+                        <TextBlock Text="{Binding ClientResponseText}" TextWrapping="Wrap" FontFamily="Consolas,monospace" />
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+            <TextBlock Grid.Row="3" Text="Postman 风格请求工作区 · 历史保留最近 100 次请求" Opacity="0.55" FontSize="11" />
+        </Grid>
+    </Grid>
 </UserControl>

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using HTools.Core.Services;
 using HTools.Server.Http;
 
@@ -11,6 +12,8 @@ namespace HTools.App.ViewModels;
 public sealed partial class MockClientViewModel : LocalizedViewModelBase
 {
     private readonly HttpRequestSender _sender = new();
+
+    public ObservableCollection<MockRequestHistoryItem> History { get; } = [];
 
     public MockClientViewModel(ILocalizationService loc)
         : base(loc)
@@ -49,6 +52,19 @@ public sealed partial class MockClientViewModel : LocalizedViewModelBase
     [ObservableProperty]
     private bool _isSending;
 
+    [ObservableProperty]
+    private MockRequestHistoryItem? _selectedHistory;
+
+    partial void OnSelectedHistoryChanged(MockRequestHistoryItem? value)
+    {
+        if (value is null) return;
+        ClientMethod = value.Method;
+        ClientUrl = value.Url;
+        ClientHeaders = value.Headers;
+        ClientBody = value.Body;
+        ClientResponseText = value.Response;
+    }
+
     [RelayCommand]
     private async Task SendAsync()
     {
@@ -68,11 +84,20 @@ public sealed partial class MockClientViewModel : LocalizedViewModelBase
             ClientResponseText = result.Success
                 ? $"{result.StatusCode} ({result.DurationMs} ms)\n\n{result.Headers}\n\n{result.Body}"
                 : string.Format(Loc.Translate("MockServer.RequestFailed"), result.Error);
+            History.Insert(0, new MockRequestHistoryItem(ClientMethod, ClientUrl, ClientHeaders, ClientBody, ClientResponseText));
+            while (History.Count > 100) History.RemoveAt(History.Count - 1);
         }
         finally
         {
             IsSending = false;
         }
+    }
+
+    [RelayCommand]
+    private void ClearHistory()
+    {
+        History.Clear();
+        SelectedHistory = null;
     }
 
     protected override void OnLanguageChanged()
@@ -84,4 +109,9 @@ public sealed partial class MockClientViewModel : LocalizedViewModelBase
         OnPropertyChanged(nameof(SendLabel));
         OnPropertyChanged(nameof(ResponseLabel));
     }
+}
+
+public sealed record MockRequestHistoryItem(string Method, string Url, string Headers, string Body, string Response)
+{
+    public string Summary => $"{Method}  {Url}";
 }

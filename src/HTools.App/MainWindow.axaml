@@ -12,18 +12,12 @@
         Topmost="{Binding IsAlwaysOnTop}"
         WindowDecorations="None"
         TransparencyLevelHint="None"
-        Background="{DynamicResource AppBorderBrush}">
+        Background="{DynamicResource AppPageBackgroundBrush}">
 
-    <!-- WindowDecorations="None" previously rendered a fully blank window. Root cause: on Windows, a
-         chrome-less top-level window is NOT implicitly opaque the way a normal decorated window is —
-         the native frame used to be what guaranteed an opaque surface. Only setting a Background on an
-         inner Border (the first attempt) was not enough; the Window element's OWN Background is what
-         Avalonia's Win32 backend uses to decide the swap-chain/surface's opacity. TransparencyLevelHint
-         is pinned to "None" explicitly too, to rule out Avalonia attempting any acrylic/blur compositing
-         path that a remote/virtual display in this environment might not support. Both are set directly
-         above on <Window>, not just on a child control. -->
+    <!-- A transparent native surface lets the rounded frame reveal the desktop at its corners. The
+         frame itself remains explicitly painted so the content area stays opaque and reliable. -->
     <Panel>
-        <Border x:Name="WindowFrame" Margin="5" CornerRadius="14" ClipToBounds="True"
+        <Border x:Name="WindowFrame"
                 Background="{DynamicResource AppPageBackgroundBrush}"
                 BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1">
             <Grid RowDefinitions="Auto,*">
@@ -34,7 +28,7 @@
                       PointerPressed="OnTitleBarPointerPressed"
                       ColumnDefinitions="Auto,*,Auto">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" IsHitTestVisible="False">
-                        <TextBlock Text="{Binding AppTitle}" VerticalAlignment="Center" FontSize="12" />
+                        <TextBlock Text="{Binding WindowHeader}" VerticalAlignment="Center" FontSize="12" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -43,6 +37,12 @@
                                       ToolTip.Tip="{Binding PinTooltip}">
                             <TextBlock Text="📌" FontSize="12" />
                         </ToggleButton>
+                        <Button Classes="titleBarButton" Click="OnAddToolClick" ToolTip.Tip="添加工具">
+                            <TextBlock Text="＋" FontSize="16" />
+                        </Button>
+                        <Button Classes="titleBarButton" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="{Binding SettingsTooltip}">
+                            <TextBlock Text="⚙" FontSize="14" />
+                        </Button>
                         <Button Classes="titleBarButton" Click="OnMinimizeClick" ToolTip.Tip="{Binding MinimizeTooltip}">
                             <TextBlock Text="─" FontSize="12" />
                         </Button>
@@ -55,39 +55,8 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
-                    <!-- Sidebar -->
-                    <Border Grid.Column="0" Width="{Binding SidebarWidth}"
-                            Background="{DynamicResource AppSidebarBrush}"
-                            BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="0,0,1,0" Padding="12">
-                        <DockPanel>
-                            <Button DockPanel.Dock="Top" Classes="sidebarToggle"
-                                    Command="{Binding ToggleSidebarCommand}"
-                                    ToolTip.Tip="{Binding AppTitle}"
-                                    Content="≡" Margin="0,0,0,12" />
-
-                            <ItemsControl ItemsSource="{Binding NavGroups}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Classes="navItem"
-                                                Classes.selected="{Binding IsSelected}"
-                                                Command="{Binding #RootWindow.DataContext.SelectGroupCommand}"
-                                                CommandParameter="{Binding}"
-                                                ToolTip.Tip="{Binding Name}">
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <TextBlock Text="{Binding Icon}" FontSize="16" />
-                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
-                                                           IsVisible="{Binding #RootWindow.DataContext.IsSidebarExpanded}" />
-                                            </StackPanel>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </DockPanel>
-                    </Border>
-
-                    <!-- Content -->
-                    <DockPanel Grid.Column="1" Margin="24">
+                <Grid Grid.Row="1">
+                    <DockPanel Margin="24">
                         <StackPanel DockPanel.Dock="Top"
                                     Orientation="Horizontal"
                                     Spacing="10"

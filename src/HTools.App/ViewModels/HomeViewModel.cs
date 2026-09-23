@@ -1,67 +1,134 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HTools.App.Models;
+using HTools.App.Services;
+using HTools.Core.Models;
 using HTools.Core.Services;
 
 namespace HTools.App.ViewModels;
 
 public sealed partial class HomeViewModel : LocalizedViewModelBase
 {
-    // Tools whose card shows an inline on/off toggle wired straight to their live page view model.
     private static readonly HashSet<string> QuickToggleToolIds = ["mouse-effect"];
-
     private readonly Action<ToolDescriptor> _openTool;
     private readonly Func<ToolDescriptor, object> _pageFactory;
-
-    // The full, unfiltered set of cards for whatever group is currently shown; Cards is what's actually
-    // bound to the view and gets narrowed down from this whenever SearchText changes.
+    private readonly SettingsViewModel _settingsPage;
+    private readonly AppSettingsContext _settings;
     private List<ToolCardViewModel> _allCards = [];
-
-    [ObservableProperty]
-    private string _groupKey = NavGroupKeys.Home;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
 
-    public HomeViewModel(ILocalizationService loc, Action<ToolDescriptor> openTool, Func<ToolDescriptor, object> pageFactory)
+    public HomeViewModel(ILocalizationService loc, Action<ToolDescriptor> openTool, Func<ToolDescriptor, object> pageFactory, SettingsViewModel settingsPage)
         : base(loc)
     {
         _openTool = openTool;
         _pageFactory = pageFactory;
+        _settingsPage = settingsPage;
+        _settings = settingsPage.SettingsContext;
+        _settingsPage.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SettingsViewModel.MinToolCardWidth))
+            {
+                OnPropertyChanged(nameof(CardMinWidth));
+            }
+        };
         Cards = [];
+        RefreshTools();
     }
 
     public ObservableCollection<ToolCardViewModel> Cards { get; }
 
-    /// <summary>The search box only makes sense on the App Center's "everything" view — other groups
-    /// already show a short, curated list where filtering would be more friction than it's worth.</summary>
-    public bool ShowSearch => GroupKey == NavGroupKeys.Home;
+    public double CardMinWidth => _settingsPage.MinToolCardWidth;
+
+    public bool ShowSearch => true;
 
     public string SearchPlaceholder => Loc.Translate("Home.SearchPlaceholder");
 
-    /// <summary>The Home nav group has no tools of its own assigned to it (it exists purely as a
-    /// landing page), so unlike every other group — which shows only its own tools — Home shows every
-    /// available tool across all groups as a simple overview/dashboard, matching the "app center"
-    /// concept from the H_Assistant reference project.</summary>
-    public void ShowGroup(string groupKey)
+    private void RefreshTools()
     {
-        GroupKey = groupKey;
-        SearchText = string.Empty;
-
-        var descriptors = groupKey == NavGroupKeys.Home
-            ? ToolCatalog.All.Where(d => d.IsAvailable)
-            : ToolCatalog.ForGroup(groupKey);
-        _allCards = descriptors
-            .Select(d => new ToolCardViewModel(d, Loc, QuickToggleTargetFor(d)))
+        var pinned = _settings.Current.PinnedToolIds.ToHashSet(StringComparer.Ordinal);
+        _allCards = ToolCatalog.All.Where(x => x.IsAvailable)
+            .Select(x => new ToolCardViewModel(x, Loc, QuickToggleTargetFor(x)) { IsPinned = pinned.Contains(x.Id) })
+            .Concat(_settings.Current.CustomTools.Select(x => new ToolCardViewModel(x, Loc, pinned.Contains(x.Id))))
             .ToList();
 
+        var order = _settings.Current.ToolboxOrder.Select((id, index) => (id, index))
+            .ToDictionary(x => x.id, x => x.index, StringComparer.Ordinal);
+        _allCards = _allCards.OrderByDescending(x => x.IsPinned)
+            .ThenBy(x => order.TryGetValue(x.Id, out var index) ? index : int.MaxValue)
+            .ToList();
         ApplyFilter();
-        OnPropertyChanged(nameof(ShowSearch));
     }
 
     private object? QuickToggleTargetFor(ToolDescriptor descriptor) =>
         descriptor.IsAvailable && QuickToggleToolIds.Contains(descriptor.Id) ? _pageFactory(descriptor) : null;
+
+    public void AddCustomTool(CustomToolItem tool)
+    {
+        _settings.Current.CustomTools.Add(tool);
+        _settings.Save();
+        RefreshTools();
+    }
+
+    public void UpdateCustomTool(CustomToolItem tool)
+    {
+        var existing = _settings.Current.CustomTools.FirstOrDefault(x => x.Id == tool.Id);
+        if (existing is null)
+        {
+            return;
+        }
+
+        existing.Name = tool.Name;
+        existing.Target = tool.Target;
+        existing.Kind = tool.Kind;
+        existing.IconPngBase64 = tool.IconPngBase64;
+        _settings.Save();
+        RefreshTools();
+    }
+
+    public void DeleteCustomTool(string id)
+    {
+        _settings.Current.CustomTools.RemoveAll(x => x.Id == id);
+        _settings.Current.ToolboxOrder.RemoveAll(x => x == id);
+        _settings.Current.PinnedToolIds.RemoveAll(x => x == id);
+        _settings.Save();
+        RefreshTools();
+    }
+
+    public void TogglePin(ToolCardViewModel tool)
+    {
+        if (tool.IsPinned)
+        {
+            _settings.Current.PinnedToolIds.RemoveAll(x => x == tool.Id);
+        }
+        else if (!_settings.Current.PinnedToolIds.Contains(tool.Id, StringComparer.Ordinal))
+        {
+            _settings.Current.PinnedToolIds.Add(tool.Id);
+        }
+
+        _settings.Save();
+        RefreshTools();
+    }
+
+    public void MoveTool(string sourceId, string targetId)
+    {
+        var sourceIndex = _allCards.FindIndex(x => x.Id == sourceId);
+        var targetIndex = _allCards.FindIndex(x => x.Id == targetId);
+        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex)
+        {
+            return;
+        }
+
+        var source = _allCards[sourceIndex];
+        _allCards.RemoveAt(sourceIndex);
+        _allCards.Insert(targetIndex, source);
+        _settings.Current.ToolboxOrder = _allCards.Select(x => x.Id).ToList();
+        _settings.Save();
+        ApplyFilter();
+    }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 
@@ -79,7 +146,22 @@ public sealed partial class HomeViewModel : LocalizedViewModelBase
     }
 
     [RelayCommand]
-    private void OpenTool(ToolCardViewModel card) => _openTool(card.Descriptor);
+    private void OpenTool(ToolCardViewModel card)
+    {
+        if (card.Descriptor is { } descriptor)
+        {
+            _openTool(descriptor);
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(card.Target) { UseShellExecute = true });
+        }
+        catch
+        {
+        }
+    }
 
     protected override void OnLanguageChanged() => OnPropertyChanged(nameof(SearchPlaceholder));
 }

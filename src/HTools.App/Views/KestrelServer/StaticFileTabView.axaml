@@ -12,10 +12,12 @@
             <Button Content="{Binding StartLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding !IsRunning}" Classes="accent" />
             <Button Content="{Binding StopLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding IsRunning}" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="10">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
             <TextBlock Text="{Binding RootFolderLabel}" Width="90" VerticalAlignment="Center" />
-            <TextBox Text="{Binding RootFolder}" Width="420" />
-        </StackPanel>
+            <TextBox Grid.Column="1" Text="{Binding RootFolder}" IsReadOnly="True" />
+            <Button Grid.Column="2" Content="选择文件夹…" Click="OnChooseFolderClick" />
+        </Grid>
+        <TextBlock Text="{Binding AccessUrl}" Opacity="0.65" />
         <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource AppDangerBrush}" TextWrapping="Wrap" />
     </StackPanel>
 </UserControl>

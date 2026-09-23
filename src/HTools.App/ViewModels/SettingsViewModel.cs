@@ -28,6 +28,7 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         SelectedLanguage = Languages.FirstOrDefault(l => l.Code == settings.Current.Language) ?? Languages[0];
         IsStartWithWindowsEnabled = WindowsStartup.IsEnabled();
         IsDarkThemeEnabled = settings.Current.IsDarkTheme;
+        MinToolCardWidth = Math.Clamp(settings.Current.MinToolCardWidth, 160, 360);
         _suppressPersist = false;
     }
 
@@ -43,6 +44,10 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
 
     public string DarkThemeLabel => Loc.Translate("Settings.DarkTheme");
 
+    public string MinToolCardWidthLabel => Loc.Translate("Settings.MinToolCardWidth");
+
+    public string MinToolCardWidthHint => Loc.Translate("Settings.MinToolCardWidthHint");
+
     public string AboutLabel => Loc.Translate("Settings.About");
 
     public string AuthorLabel => Loc.Translate("Settings.Author");
@@ -52,6 +57,8 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
     public string AuthorEmailText => AuthorEmail;
 
     public string WebsiteText => WebsiteUrl;
+
+    public AppSettingsContext SettingsContext => _settings;
 
     [RelayCommand]
     private static void OpenEmail() => OpenUrl($"mailto:{AuthorEmail}");
@@ -79,6 +86,9 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
 
     [ObservableProperty]
     private bool _isDarkThemeEnabled;
+
+    [ObservableProperty]
+    private int _minToolCardWidth;
 
     partial void OnSelectedLanguageChanged(LanguageOption? value)
     {
@@ -117,6 +127,24 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         _settings.Save();
     }
 
+    partial void OnMinToolCardWidthChanged(int value)
+    {
+        var boundedValue = Math.Clamp(value, 160, 360);
+        if (boundedValue != value)
+        {
+            MinToolCardWidth = boundedValue;
+            return;
+        }
+
+        if (_suppressPersist)
+        {
+            return;
+        }
+
+        _settings.Current.MinToolCardWidth = value;
+        _settings.Save();
+    }
+
     /// <summary>Applies the theme immediately (not just on save) so switching the toggle previews the
     /// change right away, matching every other setting on this page.</summary>
     public static void ApplyTheme(bool isDark) =>
@@ -129,6 +157,8 @@ public sealed partial class SettingsViewModel : LocalizedViewModelBase
         OnPropertyChanged(nameof(StartWithWindowsLabel));
         OnPropertyChanged(nameof(StartWithWindowsHint));
         OnPropertyChanged(nameof(DarkThemeLabel));
+        OnPropertyChanged(nameof(MinToolCardWidthLabel));
+        OnPropertyChanged(nameof(MinToolCardWidthHint));
         OnPropertyChanged(nameof(AboutLabel));
         OnPropertyChanged(nameof(AuthorLabel));
         OnPropertyChanged(nameof(WebsiteLabel));

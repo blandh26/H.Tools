@@ -39,6 +39,8 @@ public sealed partial class StaticFileTabViewModel : LocalizedViewModelBase, IAs
 
     public string RootFolderLabel => Loc.Translate("KestrelServer.RootFolder");
 
+    public string AccessUrl => $"http://localhost:{Port}/";
+
     [ObservableProperty]
     private int _port;
 
@@ -66,7 +68,11 @@ public sealed partial class StaticFileTabViewModel : LocalizedViewModelBase, IAs
         ErrorMessage = IsRunning ? null : _module.LastError;
     }
 
-    partial void OnPortChanged(int value) => Persist();
+    partial void OnPortChanged(int value)
+    {
+        Persist();
+        OnPropertyChanged(nameof(AccessUrl));
+    }
 
     partial void OnRootFolderChanged(string value) => Persist();
 

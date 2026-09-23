@@ -45,6 +45,8 @@
   "Settings.StartWithWindows": "Windows起動時に自動実行",
   "Settings.StartWithWindowsHint": "サインイン後に H.Tools を自動起動します",
   "Settings.DarkTheme": "ダークテーマ",
+  "Settings.MinToolCardWidth": "ツールカードの最小幅",
+  "Settings.MinToolCardWidthHint": "利用可能な幅に合わせて1行あたりのカード数を自動調整します。値を大きくするとカード数が減ります。",
   "Clipboard.Title": "マルチクリップボード",
   "Clipboard.Slot": "スロット",
   "Clipboard.Empty": "（空）",

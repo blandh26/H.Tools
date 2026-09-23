@@ -15,6 +15,12 @@
             <Button Content="{Binding StopLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding IsRunning}" />
         </StackPanel>
 
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+            <TextBlock Text="服务地址" VerticalAlignment="Center" Width="90" />
+            <TextBox Text="{Binding AccessUrl}" IsReadOnly="True" Width="320" />
+            <TextBlock Text="规则按 HTTP 方法和路径精确匹配；未匹配请求返回 404。" VerticalAlignment="Center" Opacity="0.65" />
+        </StackPanel>
+
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,6">
             <TextBlock Text="{Binding RulesLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
             <Button Content="{Binding AddRuleLabel}" Command="{Binding AddRuleCommand}" />
@@ -25,16 +31,16 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Border Background="{DynamicResource SystemChromeLowColor}" CornerRadius="6" Padding="8" Margin="0,0,0,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBox Text="{Binding Method}" Width="70" />
-                            <TextBox Text="{Binding Path}" Width="140" />
-                            <NumericUpDown Value="{Binding StatusCode}" Width="110" FormatString="0" Minimum="100" Maximum="599" />
-                            <TextBox Text="{Binding ContentType}" Width="130" />
-                            <TextBox Text="{Binding Body}" Width="160" />
-                            <Button Content="{Binding #Root.DataContext.RemoveRuleLabel}"
+                        <Grid ColumnDefinitions="90,*,100,180,2*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="6">
+                            <TextBox Text="{Binding Method}" PlaceholderText="Method" />
+                            <TextBox Grid.Column="1" Text="{Binding Path}" PlaceholderText="/path" />
+                            <NumericUpDown Grid.Column="2" Value="{Binding StatusCode}" FormatString="0" Minimum="100" Maximum="599" />
+                            <TextBox Grid.Column="3" Text="{Binding ContentType}" PlaceholderText="Content-Type" />
+                            <TextBox Grid.Column="4" Grid.ColumnSpan="2" Text="{Binding Body}" PlaceholderText="响应内容" />
+                            <Button Grid.Row="1" Grid.Column="5" Content="{Binding #Root.DataContext.RemoveRuleLabel}"
                                     Command="{Binding #Root.DataContext.RemoveRuleCommand}"
                                     CommandParameter="{Binding}" />
-                        </StackPanel>
+                        </Grid>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

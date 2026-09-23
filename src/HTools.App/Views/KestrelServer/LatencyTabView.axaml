@@ -13,6 +13,10 @@
             <Button Content="{Binding StopLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding IsRunning}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="模拟入口" Width="90" VerticalAlignment="Center" />
+            <TextBox Text="{Binding AccessUrl}" IsReadOnly="True" Width="320" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Text="{Binding DelayMsLabel}" Width="90" VerticalAlignment="Center" />
             <NumericUpDown Value="{Binding DelayMs}" Minimum="0" Maximum="30000" Width="140" FormatString="0" />
         </StackPanel>

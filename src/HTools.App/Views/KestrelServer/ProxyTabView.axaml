@@ -13,6 +13,11 @@
             <Button Content="{Binding StopLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding IsRunning}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="代理入口" Width="90" VerticalAlignment="Center" />
+            <TextBox Text="{Binding AccessUrl}" IsReadOnly="True" Width="320" />
+            <TextBlock Text="入口请求将转发至目标服务" VerticalAlignment="Center" Opacity="0.65" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Text="{Binding TargetUrlLabel}" Width="90" VerticalAlignment="Center" />
             <TextBox Text="{Binding TargetUrl}" Width="420" />
         </StackPanel>

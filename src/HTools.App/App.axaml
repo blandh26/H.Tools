@@ -39,6 +39,8 @@
                     <SolidColorBrush x:Key="AppBorderBrush" Color="#E2E7F0" />
                     <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#E8EEFF" />
                     <SolidColorBrush x:Key="AppSecondaryTextBrush" Color="#64748B" />
+                    <SolidColorBrush x:Key="AppScrollTrackBrush" Color="#EEF1F6" />
+                    <SolidColorBrush x:Key="AppScrollThumbBrush" Color="#AAB4C4" />
                     <Color x:Key="AppWarningBackgroundColor">#FFF7E0</Color>
                     <Color x:Key="AppWarningBorderColor">#E0A800</Color>
                     <Color x:Key="AppWarningForegroundColor">#8A6100</Color>
@@ -51,6 +53,8 @@
                     <SolidColorBrush x:Key="AppBorderBrush" Color="#343B4B" />
                     <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#303B59" />
                     <SolidColorBrush x:Key="AppSecondaryTextBrush" Color="#A3AEC2" />
+                    <SolidColorBrush x:Key="AppScrollTrackBrush" Color="#191D26" />
+                    <SolidColorBrush x:Key="AppScrollThumbBrush" Color="#5B6880" />
                     <Color x:Key="AppWarningBackgroundColor">#332E1F</Color>
                     <Color x:Key="AppWarningBorderColor">#B8860B</Color>
                     <Color x:Key="AppWarningForegroundColor">#E0A800</Color>
@@ -77,6 +81,20 @@
             <Setter Property="FontSize" Value="20" />
             <Setter Property="CornerRadius" Value="8" />
         </Style>
+        <Style Selector="ScrollBar:vertical">
+            <Setter Property="Width" Value="14" />
+            <Setter Property="MinWidth" Value="14" />
+            <Setter Property="AllowAutoHide" Value="False" />
+        </Style>
+        <Style Selector="ScrollBar:vertical /template/ Rectangle#TrackRect">
+            <Setter Property="Fill" Value="{DynamicResource AppScrollTrackBrush}" />
+            <Setter Property="Stroke" Value="Transparent" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="ScrollBar:vertical /template/ Thumb">
+            <Setter Property="Background" Value="{DynamicResource AppScrollThumbBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
         <Style Selector="Button.navItem.selected">
             <Setter Property="Background" Value="{DynamicResource AppAccentSoftBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
@@ -95,19 +113,51 @@
         </Style>
 
         <Style Selector="Grid.toolCardHost">
-            <Setter Property="Width" Value="200" />
-            <Setter Property="Height" Value="120" />
-            <Setter Property="Margin" Value="0,0,12,12" />
+            <Setter Property="Height" Value="136" />
         </Style>
         <Style Selector="Button.toolCard">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Background" Value="{DynamicResource AppSurfaceBrush}" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="14" />
+        </Style>
+        <Style Selector="Border.toolCardDragHandle">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="8" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource AppAccentSoftBrush}" />
+            <Setter Property="Cursor" Value="SizeAll" />
+        </Style>
+        <Style Selector="Border.toolCardPinBadge">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="8" />
+        </Style>
+        <Style Selector="TextBox.toolSearchInput">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,2" />
+            <Setter Property="Padding" Value="38,10,10,8" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="TextBox.toolSearchInput:focus">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+        <Style Selector="Button.addToolButton">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="CornerRadius" Value="9" />
         </Style>
         <!-- Hover reads as "this card lifted up", not a color change — matches the reference app-center
              grid, whose cards only ever gain a drop shadow on hover, nothing else. Effect (not Border's

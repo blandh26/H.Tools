@@ -13,6 +13,44 @@ namespace HTools.Windows.Imaging;
 /// </summary>
 public static class SvgRasterizer
 {
+    public static byte[]? ConvertIconToPng(byte[] iconBytes)
+    {
+        try
+        {
+            using var stream = new MemoryStream(iconBytes);
+            using var icon = new System.Drawing.Icon(stream);
+            using var bitmap = icon.ToBitmap();
+            using var output = new MemoryStream();
+            bitmap.Save(output, ImageFormat.Png);
+            return output.ToArray();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static byte[]? ExtractExecutableIcon(string executablePath)
+    {
+        try
+        {
+            using var icon = System.Drawing.Icon.ExtractAssociatedIcon(executablePath);
+            if (icon is null)
+            {
+                return null;
+            }
+
+            using var bitmap = icon.ToBitmap();
+            using var stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Png);
+            return stream.ToArray();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     /// <summary>Renders <paramref name="svgMarkup"/> to a square <paramref name="size"/>-pixel PNG with
     /// an alpha channel.</summary>
     public static byte[] RenderPng(string svgMarkup, int size)

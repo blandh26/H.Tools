@@ -45,6 +45,8 @@
   "Settings.StartWithWindows": "开机自动运行",
   "Settings.StartWithWindowsHint": "登录 Windows 后自动启动 H.Tools",
   "Settings.DarkTheme": "深色主题",
+  "Settings.MinToolCardWidth": "工具卡片最小宽度",
+  "Settings.MinToolCardWidthHint": "窗口会按可用宽度自动计算每行卡片数。数值越大，每行卡片越少。",
   "Clipboard.Title": "多剪贴板",
   "Clipboard.Slot": "槽位",
   "Clipboard.Empty": "（空）",

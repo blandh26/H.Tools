@@ -42,6 +42,8 @@ public sealed partial class ProxyTabViewModel : LocalizedViewModelBase, IAsyncDi
 
     public string TargetUrlLabel => Loc.Translate("KestrelServer.TargetUrl");
 
+    public string AccessUrl => $"http://localhost:{Port}/";
+
     [ObservableProperty]
     private int _port;
 
@@ -69,7 +71,11 @@ public sealed partial class ProxyTabViewModel : LocalizedViewModelBase, IAsyncDi
         ErrorMessage = IsRunning ? null : _module.LastError;
     }
 
-    partial void OnPortChanged(int value) => Persist();
+    partial void OnPortChanged(int value)
+    {
+        Persist();
+        OnPropertyChanged(nameof(AccessUrl));
+    }
 
     partial void OnTargetUrlChanged(string value) => Persist();
 

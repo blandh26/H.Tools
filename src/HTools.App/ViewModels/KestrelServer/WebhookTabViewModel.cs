@@ -42,6 +42,8 @@ public sealed partial class WebhookTabViewModel : LocalizedViewModelBase, IAsync
 
     public string ClearLogLabel => Loc.Translate("MockServer.ClearLog");
 
+    public string AccessUrl => $"http://localhost:{Port}/";
+
     [ObservableProperty]
     private int _port;
 
@@ -63,6 +65,7 @@ public sealed partial class WebhookTabViewModel : LocalizedViewModelBase, IAsync
 
         _settings.Current.KestrelServer.Webhook.Port = value;
         _settings.Save();
+        OnPropertyChanged(nameof(AccessUrl));
     }
 
     [RelayCommand]

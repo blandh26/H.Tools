@@ -12,12 +12,22 @@
             <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" Width="140" FormatString="0" />
             <Button Content="{Binding StartLabel}" Command="{Binding ToggleServerCommand}" IsVisible="{Binding !IsRunning}" Classes="accent" />
             <Button Content="{Binding StopLabel}" Command="{Binding ToggleServerCommand}" IsVisible="{Binding IsRunning}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="访问地址" VerticalAlignment="Center" Width="90" />
+            <TextBox Text="{Binding AccessUrl}" IsReadOnly="True" Width="320" />
             <TextBlock Text="{Binding RunningStatus}" VerticalAlignment="Center" Opacity="0.7" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Text="{Binding ResponseStatusLabel}" VerticalAlignment="Center" Width="90" />
             <NumericUpDown Value="{Binding ResponseStatusCode}" Minimum="100" Maximum="599" Width="140" FormatString="0" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding ResponseContentTypeLabel}" VerticalAlignment="Center" Width="90" />
+            <TextBox Text="{Binding ResponseContentType}" Width="320" />
         </StackPanel>
 
         <StackPanel Spacing="6">

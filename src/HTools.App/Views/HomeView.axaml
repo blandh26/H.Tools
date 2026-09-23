@@ -1,29 +1,48 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:HTools.App.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="560"
              x:Class="HTools.App.Views.HomeView"
              x:Name="Root">
-    <ScrollViewer>
-        <StackPanel Spacing="24" Margin="4">
-            <TextBox Text="{Binding SearchText}"
-                     PlaceholderText="{Binding SearchPlaceholder}"
-                     IsVisible="{Binding ShowSearch}"
-                     MaxWidth="320" HorizontalAlignment="Left" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                  AllowAutoHide="False">
+        <StackPanel Spacing="24" Margin="4,4,24,4">
+            <Grid ColumnDefinitions="*" HorizontalAlignment="Stretch">
+                <Grid Height="44">
+                    <TextBox Classes="toolSearchInput"
+                             Text="{Binding SearchText}"
+                             PlaceholderText="{Binding SearchPlaceholder}"
+                             x:Name="SearchTextBox" />
+                    <TextBlock Text="🔍" FontSize="15" Foreground="{DynamicResource AppSecondaryTextBrush}"
+                               VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,2"
+                               IsHitTestVisible="False" />
+                </Grid>
+            </Grid>
 
             <ItemsControl ItemsSource="{Binding Cards}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
+                        <controls:AdaptiveCardPanel MinItemWidth="{Binding CardMinWidth}"
+                                                     RowSpacing="12" ColumnSpacing="12" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Grid Classes="toolCardHost">
+                        <Grid Classes="toolCardHost" DragDrop.AllowDrop="True"
+                              DragDrop.DragOver="OnToolCardDragOver" DragDrop.Drop="OnToolCardDrop">
                             <Button Classes="toolCard"
                                     Command="{Binding #Root.DataContext.OpenToolCommand}"
                                     CommandParameter="{Binding}">
+                                <Button.ContextMenu>
+                                    <ContextMenu Opened="OnToolContextMenuOpened">
+                                        <MenuItem Header="置顶 / 取消置顶" Click="OnTogglePinClick" />
+                                        <Separator />
+                                        <MenuItem Header="修改" Click="OnEditToolClick" />
+                                        <MenuItem Header="删除…" Click="OnDeleteToolClick" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
                                 <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Image Source="{Binding IconImage}" Width="32" Height="32"
                                            IsVisible="{Binding IconImage, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -33,9 +52,16 @@
                                     <TextBlock Text="{Binding Description}"
                                                FontSize="11" Opacity="0.7"
                                                TextWrapping="Wrap" TextAlignment="Center"
-                                               MaxWidth="170" HorizontalAlignment="Center" />
+                                               MaxWidth="240" HorizontalAlignment="Center" />
                                 </StackPanel>
                             </Button>
+                            <Border Classes="toolCardDragHandle" PointerPressed="OnDragHandlePointerPressed"
+                                    ToolTip.Tip="按住拖动排序">
+                                <TextBlock Text="⠿" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Border Classes="toolCardPinBadge" IsVisible="{Binding IsPinned}" ToolTip.Tip="已置顶">
+                                <TextBlock Text="📌" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
                             <ToggleSwitch HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6"
                                           OnContent="" OffContent=""
                                           IsVisible="{Binding QuickToggleTarget, Converter={x:Static ObjectConverters.IsNotNull}}"
