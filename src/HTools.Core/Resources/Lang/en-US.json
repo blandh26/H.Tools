@@ -1,9 +1,6 @@
 {
   "App.Title": "H.Tools",
   "MainWindow.Pin": "Always on top",
-  "MainWindow.Minimize": "Minimize",
-  "MainWindow.Maximize": "Maximize",
-  "MainWindow.Close": "Close",
   "Nav.Home": "App Center",
   "Nav.DevTools": "Dev Tools",
   "Nav.Utilities": "Common Tools",

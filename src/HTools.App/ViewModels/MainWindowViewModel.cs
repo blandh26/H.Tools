@@ -54,12 +54,6 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
 
     public string PinTooltip => Loc.Translate("MainWindow.Pin");
 
-    public string MinimizeTooltip => Loc.Translate("MainWindow.Minimize");
-
-    public string MaximizeTooltip => Loc.Translate("MainWindow.Maximize");
-
-    public string CloseTooltip => Loc.Translate("MainWindow.Close");
-
     public object CurrentContent => CurrentPage ?? (SelectedGroupKey == NavGroupKeys.Settings ? Settings : Home);
 
     public bool ShowBackButton => CurrentPage is not null;
@@ -98,8 +92,5 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
     {
         OnPropertyChanged(nameof(AppTitle));
         OnPropertyChanged(nameof(PinTooltip));
-        OnPropertyChanged(nameof(MinimizeTooltip));
-        OnPropertyChanged(nameof(MaximizeTooltip));
-        OnPropertyChanged(nameof(CloseTooltip));
     }
 }
