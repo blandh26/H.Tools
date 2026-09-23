@@ -208,6 +208,12 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
+        <Style Selector="TextBlock.titleBarIcon">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
         <Style Selector="Button.titleBarButton:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource SystemChromeMediumColor}" />
         </Style>

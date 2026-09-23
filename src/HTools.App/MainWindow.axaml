@@ -27,21 +27,23 @@
                       Background="{DynamicResource AppSidebarBrush}"
                       PointerPressed="OnTitleBarPointerPressed"
                       ColumnDefinitions="Auto,*,Auto">
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" IsHitTestVisible="False">
-                        <TextBlock Text="{Binding WindowHeader}" VerticalAlignment="Center" FontSize="12" />
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" Margin="14,0,0,0" IsHitTestVisible="False">
+                        <Image Source="avares://HTools.App/Assets/app.ico" Width="20" Height="20"
+                               VerticalAlignment="Center" Stretch="Uniform" />
+                        <TextBlock Text="{Binding WindowHeader}" VerticalAlignment="Center" FontSize="14" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <ToggleButton x:Name="PinButton" Classes="titleBarButton"
                                       IsChecked="{Binding IsAlwaysOnTop}"
                                       ToolTip.Tip="{Binding PinTooltip}">
-                            <TextBlock Text="📌" FontSize="12" />
+                            <TextBlock Classes="titleBarIcon" Text="&#xE718;" />
                         </ToggleButton>
                         <Button Classes="titleBarButton" Click="OnAddToolClick" ToolTip.Tip="添加工具">
-                            <TextBlock Text="＋" FontSize="16" />
+                            <TextBlock Classes="titleBarIcon" Text="&#xE710;" />
                         </Button>
                         <Button Classes="titleBarButton" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="{Binding SettingsTooltip}">
-                            <TextBlock Text="⚙" FontSize="14" />
+                            <TextBlock Classes="titleBarIcon" Text="&#xE713;" />
                         </Button>
                         <Button Classes="titleBarButton" Click="OnMinimizeClick" ToolTip.Tip="{Binding MinimizeTooltip}">
                             <TextBlock Text="─" FontSize="12" />
