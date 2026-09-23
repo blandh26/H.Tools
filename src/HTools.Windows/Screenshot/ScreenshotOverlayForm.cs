@@ -1013,14 +1013,16 @@ public sealed class ScreenshotOverlayForm : Form
 
         AddSeparator(panel);
 
-        // The checkmark is the primary "I'm done" action — same effect as pressing Enter or clicking
-        // Copy (copy the annotated selection to the clipboard and close), just a more immediately
-        // recognizable affordance for "finish here" than the clipboard icon alone.
-        AddActionButton(panel, "check", _texts.ActionDone, (_, _) => CopyToClipboardAndFinish());
         AddActionButton(panel, "undo", _texts.ActionUndo, (_, _) => Undo());
         AddActionButton(panel, "pin", _texts.ActionPin, (_, _) => PinToScreenAndFinish());
         AddActionButton(panel, "copy", _texts.ActionCopy, (_, _) => CopyToClipboardAndFinish());
         AddActionButton(panel, "save", _texts.ActionSave, (_, _) => SaveToFileAndFinish());
+
+        // The checkmark is the primary "I'm done" action — same effect as pressing Enter or clicking
+        // Copy (copy the annotated selection to the clipboard and close), just a more immediately
+        // recognizable affordance for "finish here" than the clipboard icon alone. It sits right before
+        // Cancel so the two mutually-exclusive endings (confirm vs. discard) sit side by side.
+        AddActionButton(panel, "check", _texts.ActionDone, (_, _) => CopyToClipboardAndFinish());
         AddActionButton(panel, "cancel", _texts.ActionCancel, (_, _) => Finish(new ScreenshotResult(ScreenshotOutcome.Cancelled)));
 
         _toolbar = panel;
