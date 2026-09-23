@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="560"
+             x:Class="HTools.App.Views.MockClientView">
+    <StackPanel Spacing="12" Margin="4">
+        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <ComboBox ItemsSource="{Binding HttpMethods}" SelectedItem="{Binding ClientMethod}" Width="110" />
+            <TextBox Text="{Binding ClientUrl}" PlaceholderText="{Binding UrlLabel}" Width="420" />
+            <Button Content="{Binding SendLabel}" Command="{Binding SendCommand}" IsEnabled="{Binding !IsSending}" Classes="accent" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <TextBlock Text="{Binding HeadersLabel}" />
+            <TextBox Text="{Binding ClientHeaders}" AcceptsReturn="True" Height="60" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <TextBlock Text="{Binding BodyLabel}" />
+            <TextBox Text="{Binding ClientBody}" AcceptsReturn="True" Height="90" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <TextBlock Text="{Binding ResponseLabel}" FontWeight="SemiBold" />
+            <Border Background="{DynamicResource SystemChromeLowColor}" CornerRadius="6" Padding="10">
+                <ScrollViewer Height="200">
+                    <TextBlock Text="{Binding ClientResponseText}" TextWrapping="Wrap" FontFamily="Consolas,monospace" />
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

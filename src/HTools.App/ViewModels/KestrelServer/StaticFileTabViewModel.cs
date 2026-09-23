@@ -1,17 +1,22 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HTools.App.Services;
+using HTools.Core.Services;
 using HTools.Server.Modules;
 
 namespace HTools.App.ViewModels.KestrelServer;
 
-public sealed partial class StaticFileTabViewModel : ObservableObject, IAsyncDisposable
+/// <summary>Standalone "static file server" tool — was previously one tab inside a combined
+/// multi-function server page; each function now gets its own tool card per the user's request to
+/// split every server function out independently.</summary>
+public sealed partial class StaticFileTabViewModel : LocalizedViewModelBase, IAsyncDisposable
 {
     private readonly StaticFileServerModule _module = new();
     private readonly AppSettingsContext _settings;
     private bool _suppressPersist;
 
-    public StaticFileTabViewModel(AppSettingsContext settings)
+    public StaticFileTabViewModel(ILocalizationService loc, AppSettingsContext settings)
+        : base(loc)
     {
         _settings = settings;
         var saved = settings.Current.KestrelServer.StaticFile;
@@ -23,6 +28,16 @@ public sealed partial class StaticFileTabViewModel : ObservableObject, IAsyncDis
             : saved.RootFolder;
         _suppressPersist = false;
     }
+
+    public string Title => Loc.Translate("Tool.StaticFileServer.Name");
+
+    public string PortLabel => Loc.Translate("MockServer.Port");
+
+    public string StartLabel => Loc.Translate("MockServer.Start");
+
+    public string StopLabel => Loc.Translate("MockServer.Stop");
+
+    public string RootFolderLabel => Loc.Translate("KestrelServer.RootFolder");
 
     [ObservableProperty]
     private int _port;
@@ -66,6 +81,15 @@ public sealed partial class StaticFileTabViewModel : ObservableObject, IAsyncDis
         s.Port = Port;
         s.RootFolder = RootFolder;
         _settings.Save();
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(PortLabel));
+        OnPropertyChanged(nameof(StartLabel));
+        OnPropertyChanged(nameof(StopLabel));
+        OnPropertyChanged(nameof(RootFolderLabel));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

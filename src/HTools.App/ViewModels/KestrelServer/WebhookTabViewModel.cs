@@ -3,18 +3,22 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HTools.App.Services;
+using HTools.Core.Services;
 using HTools.Server.Models;
 using HTools.Server.Modules;
 
 namespace HTools.App.ViewModels.KestrelServer;
 
-public sealed partial class WebhookTabViewModel : ObservableObject, IAsyncDisposable
+/// <summary>Standalone "Webhook receiver" tool — see <see cref="StaticFileTabViewModel"/> for why this
+/// used to be a tab and now isn't.</summary>
+public sealed partial class WebhookTabViewModel : LocalizedViewModelBase, IAsyncDisposable
 {
     private readonly WebhookReceiverModule _module = new();
     private readonly AppSettingsContext _settings;
     private bool _suppressPersist;
 
-    public WebhookTabViewModel(AppSettingsContext settings)
+    public WebhookTabViewModel(ILocalizationService loc, AppSettingsContext settings)
+        : base(loc)
     {
         _settings = settings;
         _module.RequestReceived += (_, entry) => Dispatcher.UIThread.Post(() => RequestLog.Insert(0, entry));
@@ -25,6 +29,18 @@ public sealed partial class WebhookTabViewModel : ObservableObject, IAsyncDispos
     }
 
     public ObservableCollection<RequestLogEntry> RequestLog { get; } = [];
+
+    public string Title => Loc.Translate("Tool.WebhookServer.Name");
+
+    public string PortLabel => Loc.Translate("MockServer.Port");
+
+    public string StartLabel => Loc.Translate("MockServer.Start");
+
+    public string StopLabel => Loc.Translate("MockServer.Stop");
+
+    public string RequestLogLabel => Loc.Translate("MockServer.RequestLog");
+
+    public string ClearLogLabel => Loc.Translate("MockServer.ClearLog");
 
     [ObservableProperty]
     private int _port;
@@ -61,6 +77,16 @@ public sealed partial class WebhookTabViewModel : ObservableObject, IAsyncDispos
 
         IsRunning = await _module.StartAsync(Port);
         ErrorMessage = IsRunning ? null : _module.LastError;
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(PortLabel));
+        OnPropertyChanged(nameof(StartLabel));
+        OnPropertyChanged(nameof(StopLabel));
+        OnPropertyChanged(nameof(RequestLogLabel));
+        OnPropertyChanged(nameof(ClearLogLabel));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

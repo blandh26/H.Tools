@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using HTools.App.Models;
 using HTools.App.Services;
 using HTools.App.ViewModels;
+using HTools.App.ViewModels.KestrelServer;
 using HTools.Core.Services;
 using HTools.Windows.Interop;
 using HTools.Windows.Services;
@@ -51,8 +52,16 @@ public partial class App : Application
             var mouseEffectService = new MouseEffectService(_nativeMessageLoop);
             var mouseEffectViewModel = new MouseEffectViewModel(loc, mouseEffectService, settingsContext);
 
-            var mockServerViewModel = new MockServerViewModel(loc, settingsContext);
-            var kestrelServerViewModel = new KestrelServerViewModel(loc, settingsContext);
+            // Each of these was one tab inside two combined server tools; now independent tools (see
+            // ToolCatalog.cs), each owning its own Kestrel module lifetime.
+            var mockClientViewModel = new MockClientViewModel(loc);
+            var mockEchoServerViewModel = new MockEchoServerViewModel(loc, settingsContext);
+            var staticFileServerViewModel = new StaticFileTabViewModel(loc, settingsContext);
+            var mockApiServerViewModel = new MockApiTabViewModel(loc, settingsContext);
+            var webhookServerViewModel = new WebhookTabViewModel(loc, settingsContext);
+            var uploadServerViewModel = new UploadTabViewModel(loc, settingsContext);
+            var proxyServerViewModel = new ProxyTabViewModel(loc, settingsContext);
+            var latencyServerViewModel = new LatencyTabViewModel(loc, settingsContext);
 
             var screenshotService = new ScreenshotService(_nativeMessageLoop);
             var screenshotViewModel = new ScreenshotViewModel(loc, screenshotService, _hotkeyManager, settingsContext, dialogService);
@@ -61,9 +70,15 @@ public partial class App : Application
             {
                 "clipboard" => clipboardViewModel,
                 "mouse-effect" => mouseEffectViewModel,
-                "mock-server" => mockServerViewModel,
-                "kestrel-server" => kestrelServerViewModel,
                 "screenshot" => screenshotViewModel,
+                "mock-client" => mockClientViewModel,
+                "mock-echo-server" => mockEchoServerViewModel,
+                "static-file-server" => staticFileServerViewModel,
+                "mock-api-server" => mockApiServerViewModel,
+                "webhook-server" => webhookServerViewModel,
+                "upload-server" => uploadServerViewModel,
+                "reverse-proxy-server" => proxyServerViewModel,
+                "latency-server" => latencyServerViewModel,
                 _ => new ComingSoonViewModel(descriptor, loc),
             };
 
@@ -97,8 +112,13 @@ public partial class App : Application
             {
                 _trayIcon.Dispose();
                 mouseEffectService.Dispose();
-                mockServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                kestrelServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                mockEchoServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                staticFileServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                mockApiServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                webhookServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                uploadServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                proxyServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                latencyServerViewModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 _hotkeyManager.Dispose();
                 _nativeMessageLoop.Dispose();
             };

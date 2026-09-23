@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="480"
+             x:Class="HTools.App.Views.KestrelServer.ProxyTabView">
+    <StackPanel Spacing="12" Margin="4">
+        <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding PortLabel}" Width="90" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" Width="140" FormatString="0" />
+            <Button Content="{Binding StartLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding !IsRunning}" Classes="accent" />
+            <Button Content="{Binding StopLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding IsRunning}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding TargetUrlLabel}" Width="90" VerticalAlignment="Center" />
+            <TextBox Text="{Binding TargetUrl}" Width="420" />
+        </StackPanel>
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" />
+        <ListBox ItemsSource="{Binding RequestLog}" Height="220">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{Binding ReceivedAt}" Opacity="0.5" FontSize="11" Width="140" />
+                        <TextBlock Text="{Binding Method}" FontWeight="SemiBold" Width="60" />
+                        <TextBlock Text="{Binding Path}" />
+                        <TextBlock Text="{Binding ResponseStatusCode}" Opacity="0.6" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </StackPanel>
+</UserControl>

@@ -5,7 +5,6 @@ public static class NavGroupKeys
 {
     public const string Home = "home";
     public const string DevTools = "dev";
-    public const string NetworkTools = "network";
     public const string Utilities = "utilities";
     public const string Settings = "settings";
 }

@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace HTools.App.Views;
 
-public partial class KestrelServerView : UserControl
+public partial class MockClientView : UserControl
 {
-    public KestrelServerView()
+    public MockClientView()
     {
         InitializeComponent();
     }

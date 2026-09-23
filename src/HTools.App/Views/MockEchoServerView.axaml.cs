@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace HTools.App.Views;
 
-public partial class MockServerView : UserControl
+public partial class MockEchoServerView : UserControl
 {
-    public MockServerView()
+    public MockEchoServerView()
     {
         InitializeComponent();
     }

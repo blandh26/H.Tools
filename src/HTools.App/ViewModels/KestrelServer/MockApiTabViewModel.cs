@@ -4,18 +4,22 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HTools.App.Services;
 using HTools.Core.Models;
+using HTools.Core.Services;
 using HTools.Server.Models;
 using HTools.Server.Modules;
 
 namespace HTools.App.ViewModels.KestrelServer;
 
-public sealed partial class MockApiTabViewModel : ObservableObject, IAsyncDisposable
+/// <summary>Standalone "Mock API server" tool — see <see cref="StaticFileTabViewModel"/> for why this
+/// used to be a tab and now isn't.</summary>
+public sealed partial class MockApiTabViewModel : LocalizedViewModelBase, IAsyncDisposable
 {
     private readonly MockApiServerModule _module = new();
     private readonly AppSettingsContext _settings;
     private bool _suppressPersist;
 
-    public MockApiTabViewModel(AppSettingsContext settings)
+    public MockApiTabViewModel(ILocalizationService loc, AppSettingsContext settings)
+        : base(loc)
     {
         _settings = settings;
         _module.RequestReceived += (_, entry) => Dispatcher.UIThread.Post(() => RequestLog.Insert(0, entry));
@@ -47,6 +51,26 @@ public sealed partial class MockApiTabViewModel : ObservableObject, IAsyncDispos
     public ObservableCollection<MockRuleEditorItem> Rules { get; } = [];
 
     public ObservableCollection<RequestLogEntry> RequestLog { get; } = [];
+
+    public string Title => Loc.Translate("Tool.MockApiServer.Name");
+
+    public string PortLabel => Loc.Translate("MockServer.Port");
+
+    public string StartLabel => Loc.Translate("MockServer.Start");
+
+    public string StopLabel => Loc.Translate("MockServer.Stop");
+
+    public string RulesLabel => Loc.Translate("KestrelServer.Rules");
+
+    public string AddRuleLabel => Loc.Translate("KestrelServer.AddRule");
+
+    public string RemoveRuleLabel => Loc.Translate("KestrelServer.RemoveRule");
+
+    public string ApplyLabel => Loc.Translate("Common.Save");
+
+    public string RequestLogLabel => Loc.Translate("MockServer.RequestLog");
+
+    public string ClearLogLabel => Loc.Translate("MockServer.ClearLog");
 
     [ObservableProperty]
     private int _port;
@@ -127,6 +151,20 @@ public sealed partial class MockApiTabViewModel : ObservableObject, IAsyncDispos
             })
             .ToList();
         _settings.Save();
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(PortLabel));
+        OnPropertyChanged(nameof(StartLabel));
+        OnPropertyChanged(nameof(StopLabel));
+        OnPropertyChanged(nameof(RulesLabel));
+        OnPropertyChanged(nameof(AddRuleLabel));
+        OnPropertyChanged(nameof(RemoveRuleLabel));
+        OnPropertyChanged(nameof(ApplyLabel));
+        OnPropertyChanged(nameof(RequestLogLabel));
+        OnPropertyChanged(nameof(ClearLogLabel));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

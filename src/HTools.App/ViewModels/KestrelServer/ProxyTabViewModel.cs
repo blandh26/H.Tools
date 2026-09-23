@@ -3,18 +3,22 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HTools.App.Services;
+using HTools.Core.Services;
 using HTools.Server.Models;
 using HTools.Server.Modules;
 
 namespace HTools.App.ViewModels.KestrelServer;
 
-public sealed partial class ProxyTabViewModel : ObservableObject, IAsyncDisposable
+/// <summary>Standalone "reverse proxy" tool — see <see cref="StaticFileTabViewModel"/> for why this
+/// used to be a tab and now isn't.</summary>
+public sealed partial class ProxyTabViewModel : LocalizedViewModelBase, IAsyncDisposable
 {
     private readonly ReverseProxyModule _module = new();
     private readonly AppSettingsContext _settings;
     private bool _suppressPersist;
 
-    public ProxyTabViewModel(AppSettingsContext settings)
+    public ProxyTabViewModel(ILocalizationService loc, AppSettingsContext settings)
+        : base(loc)
     {
         _settings = settings;
         _module.RequestReceived += (_, entry) => Dispatcher.UIThread.Post(() => RequestLog.Insert(0, entry));
@@ -27,6 +31,16 @@ public sealed partial class ProxyTabViewModel : ObservableObject, IAsyncDisposab
     }
 
     public ObservableCollection<RequestLogEntry> RequestLog { get; } = [];
+
+    public string Title => Loc.Translate("Tool.ReverseProxyServer.Name");
+
+    public string PortLabel => Loc.Translate("MockServer.Port");
+
+    public string StartLabel => Loc.Translate("MockServer.Start");
+
+    public string StopLabel => Loc.Translate("MockServer.Stop");
+
+    public string TargetUrlLabel => Loc.Translate("KestrelServer.TargetUrl");
 
     [ObservableProperty]
     private int _port;
@@ -70,6 +84,15 @@ public sealed partial class ProxyTabViewModel : ObservableObject, IAsyncDisposab
         s.Port = Port;
         s.TargetUrl = TargetUrl;
         _settings.Save();
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(PortLabel));
+        OnPropertyChanged(nameof(StartLabel));
+        OnPropertyChanged(nameof(StopLabel));
+        OnPropertyChanged(nameof(TargetUrlLabel));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();

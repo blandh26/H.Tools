@@ -50,6 +50,26 @@ public partial class MainWindow : Window
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
+    // SystemDecorations="None" drops the OS's own edge/corner resize handling along with the rest of
+    // its chrome, so these replace it — each is wired to a thin transparent strip around the window's
+    // edge in MainWindow.axaml. WindowState.Normal-only isn't checked here because BeginResizeDrag is a
+    // no-op while maximized anyway (there's nothing to resize into until it's restored).
+    private void OnResizeWest(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.West, e);
+
+    private void OnResizeEast(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.East, e);
+
+    private void OnResizeNorth(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.North, e);
+
+    private void OnResizeSouth(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.South, e);
+
+    private void OnResizeNorthWest(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.NorthWest, e);
+
+    private void OnResizeNorthEast(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.NorthEast, e);
+
+    private void OnResizeSouthWest(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.SouthWest, e);
+
+    private void OnResizeSouthEast(object? sender, PointerPressedEventArgs e) => BeginResizeDrag(WindowEdge.SouthEast, e);
+
     private void ToggleMaximizeRestore() =>
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 

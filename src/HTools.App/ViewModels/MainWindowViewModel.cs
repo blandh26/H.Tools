@@ -33,9 +33,8 @@ public sealed partial class MainWindowViewModel : LocalizedViewModelBase
 
         NavGroups =
         [
-            new NavGroupViewModel(NavGroupKeys.Home, "🏠", "Nav.Home", loc),
+            new NavGroupViewModel(NavGroupKeys.Home, "🗂", "Nav.Home", loc),
             new NavGroupViewModel(NavGroupKeys.DevTools, "🛠", "Nav.DevTools", loc),
-            new NavGroupViewModel(NavGroupKeys.NetworkTools, "🌐", "Nav.NetworkTools", loc),
             new NavGroupViewModel(NavGroupKeys.Utilities, "🧰", "Nav.Utilities", loc),
             new NavGroupViewModel(NavGroupKeys.Settings, "⚙", "Nav.Settings", loc),
         ];

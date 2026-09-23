@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
+             x:Class="HTools.App.Views.KestrelServer.WebhookTabView">
+    <DockPanel Margin="4">
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Title}" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+            <TextBlock Text="{Binding PortLabel}" Width="90" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" Width="140" FormatString="0" />
+            <Button Content="{Binding StartLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding !IsRunning}" Classes="accent" />
+            <Button Content="{Binding StopLabel}" Command="{Binding ToggleCommand}" IsVisible="{Binding IsRunning}" />
+            <Button Content="{Binding ClearLogLabel}" Command="{Binding ClearLogCommand}" />
+        </StackPanel>
+        <ListBox ItemsSource="{Binding RequestLog}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Spacing="2" Margin="0,4">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding ReceivedAt}" Opacity="0.5" FontSize="11" Width="140" />
+                            <TextBlock Text="{Binding Method}" FontWeight="SemiBold" Width="60" />
+                            <TextBlock Text="{Binding Path}" />
+                            <TextBlock Text="{Binding RemoteAddress}" Opacity="0.5" FontSize="11" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Body}" FontSize="11" Opacity="0.7" TextWrapping="Wrap" MaxHeight="60" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

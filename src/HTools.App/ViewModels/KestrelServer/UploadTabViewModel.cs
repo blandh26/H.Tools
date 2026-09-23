@@ -8,17 +8,18 @@ using HTools.Server.Modules;
 
 namespace HTools.App.ViewModels.KestrelServer;
 
-public sealed partial class UploadTabViewModel : ObservableObject, IAsyncDisposable
+/// <summary>Standalone "file upload server" tool — see <see cref="StaticFileTabViewModel"/> for why
+/// this used to be a tab and now isn't.</summary>
+public sealed partial class UploadTabViewModel : LocalizedViewModelBase, IAsyncDisposable
 {
     private readonly FileUploadServerModule _module = new();
     private readonly AppSettingsContext _settings;
-    private readonly ILocalizationService _loc;
     private bool _suppressPersist;
 
-    public UploadTabViewModel(AppSettingsContext settings, ILocalizationService loc)
+    public UploadTabViewModel(ILocalizationService loc, AppSettingsContext settings)
+        : base(loc)
     {
         _settings = settings;
-        _loc = loc;
         _module.FileReceived += (_, path) => Dispatcher.UIThread.Post(() => ReceivedFiles.Insert(0, path));
 
         var saved = settings.Current.KestrelServer.Upload;
@@ -31,6 +32,18 @@ public sealed partial class UploadTabViewModel : ObservableObject, IAsyncDisposa
     }
 
     public ObservableCollection<string> ReceivedFiles { get; } = [];
+
+    public string Title => Loc.Translate("Tool.UploadServer.Name");
+
+    public string PortLabel => Loc.Translate("MockServer.Port");
+
+    public string StartLabel => Loc.Translate("MockServer.Start");
+
+    public string StopLabel => Loc.Translate("MockServer.Stop");
+
+    public string UploadFolderLabel => Loc.Translate("KestrelServer.UploadFolder");
+
+    public string ReceivedFilesLabel => Loc.Translate("KestrelServer.ReceivedFiles");
 
     [ObservableProperty]
     private int _port;
@@ -55,9 +68,9 @@ public sealed partial class UploadTabViewModel : ObservableObject, IAsyncDisposa
         }
 
         _module.UploadFolder = UploadFolder;
-        _module.PageTitle = _loc.Translate("KestrelServer.UploadPageTitle");
-        _module.UploadButtonText = _loc.Translate("KestrelServer.UploadButton");
-        _module.SuccessText = _loc.Translate("KestrelServer.UploadSuccess");
+        _module.PageTitle = Loc.Translate("KestrelServer.UploadPageTitle");
+        _module.UploadButtonText = Loc.Translate("KestrelServer.UploadButton");
+        _module.SuccessText = Loc.Translate("KestrelServer.UploadSuccess");
         IsRunning = await _module.StartAsync(Port);
         ErrorMessage = IsRunning ? null : _module.LastError;
     }
@@ -77,6 +90,16 @@ public sealed partial class UploadTabViewModel : ObservableObject, IAsyncDisposa
         s.Port = Port;
         s.UploadFolder = UploadFolder;
         _settings.Save();
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(PortLabel));
+        OnPropertyChanged(nameof(StartLabel));
+        OnPropertyChanged(nameof(StopLabel));
+        OnPropertyChanged(nameof(UploadFolderLabel));
+        OnPropertyChanged(nameof(ReceivedFilesLabel));
     }
 
     public async ValueTask DisposeAsync() => await _module.DisposeAsync();
